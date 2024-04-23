@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "sdk"
+version = "0.1.0"
+description = "Scripts to support SDK"
+authors = ["Marco <email>, Lorenz <email>, Niels Hellinga <nielshellinga@banian.ch>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+
+[tool.poetry.group.dev.dependencies]
+flake8 = "^7.0.0"
+black = "^24.4.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
