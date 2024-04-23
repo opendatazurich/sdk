@@ -1,4 +1,4 @@
-# Dataspot Connector Python - dataspot-connector-python
+# SDK
 
 ![poetry](https://img.shields.io/static/v1?label=package%20manager&message=poetry&color=blue)
 ![code style](https://img.shields.io/static/v1?label=code%20style&message=flask8&color=green)
