@@ -23,6 +23,10 @@ poetry shell    # to enter poetry environment
 flake8 --append-config .flake8 # appends user defined formatting rules to flake8 default set
 ``` 
 
+## sdk2ckan
+
+TODO
+
 ## ckan2sdk
 
 The ckan2sdk project contains .... TODO
