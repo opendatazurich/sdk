@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from typing import List
 
 
@@ -8,6 +8,9 @@ class SDK:
 
     label: str
     # tags: List[str] = field(default_factory=list)
+
+    def to_json(self):
+        return asdict(self)
 
     def __post_init__(self):
         self.label = self.label.strip()

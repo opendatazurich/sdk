@@ -4,7 +4,7 @@ CKAN - CLEAN - SDK
 import libs.cleaner as cleaner
 from libs.ckan_api import call_api
 from mapping import MAPPING_CLEAN_TO_SDK
-from libs.dataclasses.sdk import SDK
+from interface.sdk import SDK
 
 pdf = call_api(limit=100)
 
@@ -31,6 +31,6 @@ pdf_sdk = pdf.rename(columns=MAPPING_CLEAN_TO_SDK)
 sdk_columns = SDK.__annotations__
 for _, row in pdf_sdk.iterrows():
 
-    item = SDK(**{key: row[key] for key in sdk_columns})
+    item = SDK(**{key: row[key] for key in sdk_columns}).to_json()
 
     print(item)
