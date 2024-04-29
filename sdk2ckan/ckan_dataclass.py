@@ -1,8 +1,10 @@
 """
 For reference: This is the current dataclass used for export - SDK to CKAN
 """
+
 from dataclasses import dataclass, field
 from typing import List, Optional
+
 
 #
 # CKAN Dataset
@@ -14,6 +16,7 @@ class Attribute:
     required: str = ""
     cardinality: str = ""
 
+
 @dataclass
 class Literals:
     id: str
@@ -21,6 +24,7 @@ class Literals:
     code: Optional[str]
     shortText: Optional[str]
     stereotype: Optional[str]
+
 
 @dataclass
 class CKANDataset:

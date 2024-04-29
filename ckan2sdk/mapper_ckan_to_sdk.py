@@ -1,6 +1,7 @@
 """ 
 CKAN - CLEAN - SDK
 """
+
 import libs.cleaner as cleaner
 from libs.ckan_api import call_api
 from mapping import MAPPING_CLEAN_TO_SDK
@@ -13,7 +14,7 @@ pdf = call_api(limit=100)
 # TODO Clean CKAN dataframe
 # pdf[['departement','dienstabteilung']] = pdf['author'].str.split(',',expand=True)
 
-pdf['tags'] = cleaner.clean_tags(pdf['tags'])
+pdf["tags"] = cleaner.clean_tags(pdf["tags"])
 
 # pdf['tags'] = pdf['tags'].apply(x)
 # tags = [t for t in pdf['tags']]
