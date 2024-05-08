@@ -19,3 +19,4 @@ MAPPING_DEPT_DA = {'Präsidialdepartement': ['Departementssekretariat PRD', 'Bev
                    'Sozialdepartement': ['Departementssekretariat', 'Support Sozialdepartement', 'Laufbahnzentrum', 'Soziale Einrichtungen und Betriebe', 'Amt für Zusatzleistungen zur AHV/IV', 'Soziale Dienste', 'Kindes- und Erwachsenenschutzbehörde', 'Asylorganisation der Stadt Zürich'],
                    'Allgemeine Verwaltung': ['Stadtkanzlei', 'Rechtskonsulent', 'Datenschutzstelle', 'Ombudsstelle', 'Finanzkontrolle', 'Sozialbehörde', 'Gemeinderat der Stadt Zürich']}
 
+

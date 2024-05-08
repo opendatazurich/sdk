@@ -1,17 +1,25 @@
 """ 
 CKAN - CLEAN - SDK
 """
+import pandas as pd
 import libs.cleaner as cleaner
 from libs.ckan_api import call_api
-from mapping import MAPPING_CLEAN_TO_SDK
+from mapping import *
 from interface.sdk import SDK
 
-pdf = call_api(limit=100)
+pdf = call_api(limit=1000)
 
 # 1. Clean CKAN dataset. i.e. author -> dept. & dienstab.
+pdf_cleaned_author = cleaner.split_author(pdf['author'])
+pdf = pd.concat([pdf,pdf_cleaned_author], axis=1)
 
-# TODO Clean CKAN dataframe
-# pdf[['departement','dienstabteilung']] = pdf['author'].str.split(',',expand=True)
+pdf_cleaned_timerange = cleaner.split_timerange(pdf['timeRange'])
+pdf = pd.concat([pdf,pdf_cleaned_timerange], axis = 1)
+
+
+# test output
+# pdf = pdf[['author', 'author_dept', 'author_da', 'author_org','timeRange','temporalStart','temporalEnd']]
+# pdf.to_excel("cleaning_ckan_test.xlsx")
 
 pdf['tags'] = cleaner.clean_tags(pdf['tags'])
 
