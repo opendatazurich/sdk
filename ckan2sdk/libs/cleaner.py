@@ -3,6 +3,7 @@ import re
 from datetime import datetime
 from mapping import *
 
+
 def clean_tags(pdf: pd.DataFrame) -> pd.DataFrame: 
     return pdf
 
@@ -144,6 +145,3 @@ def split_name(pdf: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: A pandas DataFrame containing extracted fields as separate columns.
     """
-
-
-    return pdf

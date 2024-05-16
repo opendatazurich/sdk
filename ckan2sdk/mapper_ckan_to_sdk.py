@@ -1,7 +1,7 @@
 """ 
 CKAN - CLEAN - SDK
 """
-import pandas as pd
+
 import libs.cleaner as cleaner
 from libs.ckan_api import call_api
 from mapping import *
@@ -24,6 +24,8 @@ pdf = pd.concat([pdf,pdf_cleaned_timerange], axis = 1)
 # pdf['name_prefix'] = pdf['name'].str.extract(r'([^_]*)')
 # pdf = pdf[['name','name_prefix','author', 'author_dept', 'author_da', 'author_org','timeRange','temporalStart','temporalEnd']]
 # pdf.to_excel("cleaning_ckan_test.xlsx")
+=======
+pdf["tags"] = cleaner.clean_tags(pdf["tags"])
 
 # pdf['tags'] = pdf['tags'].apply(x)
 # tags = [t for t in pdf['tags']]
