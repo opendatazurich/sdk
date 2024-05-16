@@ -6,7 +6,7 @@ from mapping import *
 def clean_tags(pdf: pd.DataFrame) -> pd.DataFrame: 
     return pdf
 
-def split_author(pdf: pd.DataFrame) -> pd.DataFrame:
+def split_dept_da(pdf: pd.DataFrame) -> pd.DataFrame:
     """
     Splitting column 'author' in order to extract the departement and dienstabteilung
 
@@ -19,6 +19,12 @@ def split_author(pdf: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: A pandas DataFrame containing extracted fields as separate columns.
     """
+
+    # defining output column names
+    output_column_dept = pdf.name + "_dept"
+    output_column_da = pdf.name + "_da"
+    output_column_org = pdf.name + "_org"
+
     # splitting dataframe
     pdf_author = pd.DataFrame([i.split(",") for i in pdf], columns=["c0","c1","c2","c3","c4","c5"])
 
@@ -27,32 +33,32 @@ def split_author(pdf: pd.DataFrame) -> pd.DataFrame:
     pdf_author = pd.concat([pdf_author,pdf_commas], axis=1)
 
     # assign values to 'dataowner_departement' and 'author_da'
-    pdf_author.loc[pdf_author['commas'] == 5, 'author_dept'] = pdf_author['c5']
-    pdf_author.loc[pdf_author['commas'] == 4, 'author_dept'] = pdf_author['c4']
-    pdf_author.loc[pdf_author['commas'] == 3, 'author_dept'] = pdf_author['c3']
-    pdf_author.loc[pdf_author['commas'] == 2, 'author_dept'] = pdf_author['c2']
-    pdf_author.loc[pdf_author['commas'] == 1, 'author_dept'] = pdf_author['c1']
-    pdf_author.loc[pdf_author['commas'] == 0, 'author_dept'] = pdf_author['c0']
+    pdf_author.loc[pdf_author['commas'] == 5, output_column_dept] = pdf_author['c5']
+    pdf_author.loc[pdf_author['commas'] == 4, output_column_dept] = pdf_author['c4']
+    pdf_author.loc[pdf_author['commas'] == 3, output_column_dept] = pdf_author['c3']
+    pdf_author.loc[pdf_author['commas'] == 2, output_column_dept] = pdf_author['c2']
+    pdf_author.loc[pdf_author['commas'] == 1, output_column_dept] = pdf_author['c1']
+    pdf_author.loc[pdf_author['commas'] == 0, output_column_dept] = pdf_author['c0']
 
-    pdf_author.loc[pdf_author['commas'] == 5, 'author_da'] = pdf_author['c4']
-    pdf_author.loc[pdf_author['commas'] == 4, 'author_da'] = pdf_author['c3']
-    pdf_author.loc[pdf_author['commas'] == 3, 'author_da'] = pdf_author['c2']
-    pdf_author.loc[pdf_author['commas'] == 2, 'author_da'] = pdf_author['c1']
-    pdf_author.loc[pdf_author['commas'] == 1, 'author_da'] = pdf_author['c0']
-    pdf_author.loc[pdf_author['commas'] == 0, 'author_da'] = None
+    pdf_author.loc[pdf_author['commas'] == 5, output_column_da] = pdf_author['c4']
+    pdf_author.loc[pdf_author['commas'] == 4, output_column_da] = pdf_author['c3']
+    pdf_author.loc[pdf_author['commas'] == 3, output_column_da] = pdf_author['c2']
+    pdf_author.loc[pdf_author['commas'] == 2, output_column_da] = pdf_author['c1']
+    pdf_author.loc[pdf_author['commas'] == 1, output_column_da] = pdf_author['c0']
+    pdf_author.loc[pdf_author['commas'] == 0, output_column_da] = None
 
     # trimming whitespace
-    pdf_author['author_dept'] = pdf_author['author_dept'].str.strip()
-    pdf_author['author_da'] = pdf_author['author_da'].str.strip()
+    pdf_author[output_column_dept] = pdf_author[output_column_dept].str.strip()
+    pdf_author[output_column_da] = pdf_author[output_column_da].str.strip()
 
     # dropping columns
     pdf_author.drop(["commas","c0","c1","c2","c3","c4","c5"], inplace=True, axis=1)
 
     # assigning author_org / cleaning author_dept and author_da
-    pdf_author.loc[pdf_author['author_dept'].isin(MAPPING_DEPT_DA.keys()),'author_org'] = "Stadt Zürich"
-    pdf_author.loc[~pdf_author['author_dept'].isin(MAPPING_DEPT_DA.keys()),'author_org'] = pdf_author['author_dept']
-    pdf_author.loc[~pdf_author['author_dept'].isin(MAPPING_DEPT_DA.keys()),'author_dept'] = None
-    pdf_author.loc[~pdf_author['author_da'].isin([item for sublist in MAPPING_DEPT_DA.values() for item in sublist]),'author_da'] = None
+    pdf_author.loc[pdf_author[output_column_dept].isin(MAPPING_DEPT_DA.keys()),output_column_org] = "Stadt Zürich"
+    pdf_author.loc[~pdf_author[output_column_dept].isin(MAPPING_DEPT_DA.keys()),output_column_org] = pdf_author[output_column_dept]
+    pdf_author.loc[~pdf_author[output_column_dept].isin(MAPPING_DEPT_DA.keys()),output_column_dept] = None
+    pdf_author.loc[~pdf_author[output_column_da].isin([item for sublist in MAPPING_DEPT_DA.values() for item in sublist]),output_column_da] = None
 
     return pdf_author
 

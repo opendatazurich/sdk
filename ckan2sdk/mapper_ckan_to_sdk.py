@@ -10,18 +10,20 @@ from interface.sdk import SDK
 pdf = call_api(limit=1000)
 
 # 1. Clean CKAN dataset. i.e. author -> dept. & dienstab.
-pdf_cleaned_author = cleaner.split_author(pdf['author'])
+pdf_cleaned_author = cleaner.split_dept_da(pdf['author'])
 pdf = pd.concat([pdf,pdf_cleaned_author], axis=1)
+
+
+pdf_cleaned_datenlieferant = cleaner.split_dept_da(pdf['url'])
 
 pdf_cleaned_timerange = cleaner.split_timerange(pdf['timeRange'])
 pdf = pd.concat([pdf,pdf_cleaned_timerange], axis = 1)
 
 
-# test output
-# pdf = pdf[['author', 'author_dept', 'author_da', 'author_org','timeRange','temporalStart','temporalEnd']]
+# writing out test output
+# pdf['name_prefix'] = pdf['name'].str.extract(r'([^_]*)')
+# pdf = pdf[['name','name_prefix','author', 'author_dept', 'author_da', 'author_org','timeRange','temporalStart','temporalEnd']]
 # pdf.to_excel("cleaning_ckan_test.xlsx")
-
-pdf['tags'] = cleaner.clean_tags(pdf['tags'])
 
 # pdf['tags'] = pdf['tags'].apply(x)
 # tags = [t for t in pdf['tags']]
