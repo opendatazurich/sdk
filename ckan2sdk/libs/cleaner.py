@@ -29,7 +29,7 @@ def split_dept_da(pdf: pd.DataFrame) -> pd.DataFrame:
     # splitting dataframe
     pdf_author = pd.DataFrame([i.split(",") for i in pdf], columns=["c0","c1","c2","c3","c4","c5"])
 
-    # counting commas and splitting by commans
+    # counting commas and splitting by commas
     pdf_commas = pd.DataFrame([i.count(",") for i in pdf],columns=["commas"])
     pdf_author = pd.concat([pdf_author,pdf_commas], axis=1)
 
