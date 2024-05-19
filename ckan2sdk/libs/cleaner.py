@@ -1,13 +1,16 @@
 import pandas as pd
 import re
-from datetime import datetime
 from mapping import *
+import jaro
+import calendar
+from datetime import datetime
 
+re.sub(r'ab ', 'seit ', 'ab 01.01.2019')
 
 def clean_tags(pdf: pd.DataFrame) -> pd.DataFrame: 
     return pdf
 
-def split_dept_da(pdf: pd.DataFrame) -> pd.DataFrame:
+def split_dept_da(pdf: pd.Series) -> pd.DataFrame:
     """
     Splitting column 'author' in order to extract the departement and dienstabteilung
 
@@ -15,7 +18,7 @@ def split_dept_da(pdf: pd.DataFrame) -> pd.DataFrame:
     The extracted fields will get assigned to new columns.
 
     Args:
-        pdf (pandas dataFrame): Pandas dataFrame as returned by call_api() function
+        pdf (pandas Series): Pandas dataFrame as returned by call_api() function
 
     Returns:
         pd.DataFrame: A pandas DataFrame containing extracted fields as separate columns.
@@ -55,13 +58,72 @@ def split_dept_da(pdf: pd.DataFrame) -> pd.DataFrame:
     # dropping columns
     pdf_author.drop(["commas","c0","c1","c2","c3","c4","c5"], inplace=True, axis=1)
 
-    # assigning author_org / cleaning author_dept and author_da
-    pdf_author.loc[pdf_author[output_column_dept].isin(MAPPING_DEPT_DA.keys()),output_column_org] = "Stadt Zürich"
-    pdf_author.loc[~pdf_author[output_column_dept].isin(MAPPING_DEPT_DA.keys()),output_column_org] = pdf_author[output_column_dept]
-    pdf_author.loc[~pdf_author[output_column_dept].isin(MAPPING_DEPT_DA.keys()),output_column_dept] = None
-    pdf_author.loc[~pdf_author[output_column_da].isin([item for sublist in MAPPING_DEPT_DA.values() for item in sublist]),output_column_da] = None
+    # # assigning author_org / cleaning author_dept and author_da
+    # pdf_author.loc[pdf_author[output_column_dept].isin(MAPPING_DEPT_DA.keys()),output_column_org] = "Stadt Zürich"
+    # pdf_author.loc[~pdf_author[output_column_dept].isin(MAPPING_DEPT_DA.keys()),output_column_org] = pdf_author[output_column_dept]
+    # pdf_author.loc[~pdf_author[output_column_dept].isin(MAPPING_DEPT_DA.keys()),output_column_dept] = None
+    # pdf_author.loc[~pdf_author[output_column_da].isin([item for sublist in MAPPING_DEPT_DA.values() for item in sublist]),output_column_da] = None
 
     return pdf_author
+
+def fuzzymatch_dep_da(pdf: pd.DataFrame, departement: str, dienstabteilung: str, min_simularity: float) -> list:
+    """
+    Fuzzy-matching column departement and dienstabteilung to given grobstruktur
+
+    The function fuzzy matches the columns departement and dienstabteilung, as extractet by split_dept_da() to the names given by grobstruktur.json
+    The matched fields will get assigned to new columns.
+
+    Args:
+        pdf (pandas dataFrame): Pandas dataFrame as returned by call_api() function
+        departement (str): Name of 'departement' column in pdf
+        dienstabteilung (str): Name of 'dienstabteilung' column in pdf
+        min_simularity (float): Minimum distance which should get considered when comparing strings (Jaro-Winkler metric)
+
+    Returns:
+        pd.DataFrame: A pandas DataFrame containing extracted fields as separate columns.
+    """
+    grobstruktur = pd.read_json("_data/grobstruktur.json")
+    match_list_dep = []
+    match_list_da = []
+
+    for i in range(len(pdf)):
+
+        i_dep = pdf.iloc[i][departement]
+        i_da = pdf.iloc[i][dienstabteilung]
+
+        if i_dep is None:
+            i_dep = ""
+        if i_da is None:
+            i_da = ""
+
+        # matching departement
+        matches_dep = [jaro.original_metric(i_dep, i) for i in grobstruktur['departement'].unique()]
+
+        if max(matches_dep) < min_simularity:
+            match_dep = None
+            match_da = None
+        else:
+            matches_dep_max_ind = matches_dep.index(max(matches_dep))
+            match_dep = grobstruktur['departement'].unique()[matches_dep_max_ind]
+
+            subset_da = [*grobstruktur[grobstruktur['departement'] == match_dep]['dienstabteilung']]
+            matches_da = [jaro.original_metric(i_da, i) for i in subset_da]
+
+            if max(matches_da) < min_simularity:
+                match_da = None
+            else:
+                match_da_max_ind = matches_da.index(max(matches_da))
+                match_da = subset_da[match_da_max_ind]
+
+        match_list_dep.append(match_dep)
+        match_list_da.append(match_da)
+
+    col_dep = departement + "_gs"
+    col_da = dienstabteilung + "_gs"
+    pdf = pd.DataFrame({col_dep: match_list_dep, col_da: match_list_da})
+
+    return pdf
+
 
 def split_timerange(pdf: pd.DataFrame) -> pd.DataFrame:
     """
@@ -79,47 +141,128 @@ def split_timerange(pdf: pd.DataFrame) -> pd.DataFrame:
 
     pdf_temporalStartEnd = pd.DataFrame()
 
+    # general cleaning
+    pdf = [re.sub(r'bis', '-', i) for i in pdf] # replace 'bis' with '-'
+    pdf = [re.sub(r'ab ', 'seit ', i) for i in pdf] # replace 'ab' with 'seit'
+    pdf = [re.sub(r'–', '-', i) for i in pdf] # replace hyphen with dash
+    pdf = [re.sub(r'\s+', '', i) for i in pdf] # trimming all whitespace
+
+    # replacing month by number wiht a dot '.'
+    month_mapping = {
+        'Januar': '01.',
+        'Februar': '02.',
+        'März': '03.',
+        'April': '04.',
+        'Mai': '05.',
+        'Juni': '06.',
+        'Juli': '07.',
+        'August': '08.',
+        'September': '09.',
+        'Oktober': '10.',
+        'November': '11.',
+        'Dezember': '12.'
+    }
+
+    pattern = re.compile(r'(' + '|'.join(month_mapping.keys()) + r')')
+    def replace_month(match):
+        return month_mapping[match.group(0)]
+    pdf = [pattern.sub(replace_month, i) for i in pdf]
+
+    # looping all entries
     for i in range(len(pdf)):
 
-        i_string = pdf.iloc[i]
-        i_string = re.sub(r'\s+', '', i_string) # trimming all whitespace
-        i_string = re.sub(r'–', '-', i_string) # replace hyphen with dash
+        # Tests
+        i_string = pdf[i]
+        # i_string = 'laufendeNachführungseit06.2021'
+        # # i_string = '1.1998'
+        # i_string = "1870-1990"
+        print(i_string)
 
-        # matching exactly 4 digits
+        # matching YYYY > exactly/only 4 digits
         if re.search(r'(^\d{4}$)', i_string):
 
-            i_temp = re.search(pattern=r'(^\d{4}$)', string = i_string).group()
-            i_temp = '31.12.' + i_temp
-            i_temporalStart = i_temp
-            i_temporalEnd = i_temp
+            i_temp = re.search(r'(^\d{4}$)', string = i_string).group()
+            i_temporalStart = datetime(int(i_temp), 12, 31)
+            i_temporalEnd = i_temporalStart
 
-        # matching single 'full' date format
-        elif re.search(r'(^\d{2}\.\d{2}\.\d{4}$)', i_string):
+        # matching (D)D.(M)M.YYYY > a only single 'full' date format
+        elif re.search(r'(^\d{1,2}\.\d{1,2}\.\d{4}$)', i_string):
 
-            i_temp = re.search(pattern=r'(^\d{2}\.\d{2}\.\d{4}$)', string = i_string).group()
-            i_temporalStart = i_temp
-            i_temporalEnd = i_temp
+            i_temp = re.search(r'(^\d{1,2}\.\d{1,2}\.\d{4}$)', string = i_string).group()
+            day, month, year = map(int, i_temp.split('.'))
+            i_temporalStart = datetime(year, month, day)
+            i_temporalEnd = i_temporalStart
 
-        # matching everything with a dash
+        # matching everything with a dash '-'
         elif re.search(r'-', i_string):
 
-            i_temporalStart = re.search(pattern=r'^.*(?=-)', string=i_string).group()
+            # replace seit/ab with empty string (since we have a dash anyway)
+            i_string = re.sub(r'(seit|Seit|ab)', '', i_string)
+            # everything before the dash > temporalStart
+            i_temporalStart = re.search(r'^.*(?=-)', string=i_string).group()
+
+            # matching four digits (YYYY)
             if re.search(r'(^\d{4}$)', i_temporalStart):
-                i_temporalStart = re.search(pattern=r'(^\d{4}$)', string = i_temporalStart).group()
-                i_temporalStart = '31.12.' + i_temporalStart
-            elif re.search(r'(^\d{2}\.\d{2}\.\d{4}$)', i_temporalStart):
-                i_temporalStart = re.search(pattern=r'(^\d{2}\.\d{2}\.\d{4}$)', string = i_temporalStart).group()
+                i_temporalStart = re.search(r'(^\d{4}$)', string = i_temporalStart).group()
+                i_temporalStart = datetime(int(i_temporalStart), 1, 1)
+
+            # matching (D)D.(M)M.YYYY
+            elif re.search(r'(^\d{1,2}\.\d{1,2}\.\d{4}$)', i_temporalStart):
+                i_temporalStart = re.search(r'(^\d{1,2}\.\d{1,2}\.\d{4}$)', string = i_temporalStart).group()
+                day, month, year = map(int, i_temporalStart.split('.'))
+                i_temporalStart = datetime(int(year), int(month), int(day))
+
+            # matching (M|MM).YYYY
+            elif re.search(r'(^\d{1,2}\.\d{4}$)', i_temporalStart):
+                i_temporalStart = re.search(r'(^\d{1,2}\.\d{4}$)', string = i_temporalStart).group()
+                month, year = map(int, i_temporalStart.split('.'))
+                i_temporalStart = datetime(int(year), int(month), 1)
+
             else:
                 i_temporalStart = None
 
-            i_temporalEnd = re.search(pattern=r'(?<=-).+', string = i_string).group()
+            # everything after the dash > temporalEnd
+            i_temporalEnd = re.search(r'(?<=-).+', string = i_string).group()
+
+            # matching (YYYY) four digits
             if re.search(r'(^\d{4}$)', i_temporalEnd):
-                i_temporalEnd = re.search(pattern=r'(^\d{4}$)', string = i_temporalEnd).group()
-                i_temporalEnd = '31.12.' + i_temporalEnd
-            elif re.search(r'(^\d{2}\.\d{2}\.\d{4}$)', i_temporalEnd):
-                i_temporalEnd = re.search(pattern=r'(^\d{2}\.\d{2}\.\d{4}$)', string = i_temporalEnd).group()
+                i_temporalEnd = re.search(r'(^\d{4}$)', string = i_temporalEnd).group()
+                i_temporalEnd = datetime(int(i_temporalEnd), 12, 31)
+
+            # matching DD.MM.YYYY
+            elif re.search(r'(^\d{1,2}\.\d{1,2}\.\d{4}$)', i_temporalEnd):
+                i_temporalEnd = re.search(r'(^\d{1,2}\.\d{1,2}\.\d{4}$)', string = i_temporalEnd).group()
+                day, month, year = map(int, i_temporalEnd.split('.'))
+                i_temporalEnd = datetime(int(year), int(month), int(day))
+
+            # matching (M|MM).YYYY
+            elif re.search(r'(^\d{1,2}\.\d{4}$)', i_temporalEnd):
+                month, year = map(int, i_temporalEnd.split('.'))
+                day = calendar.monthrange(year, month)[1]
+                i_temporalEnd = datetime(year, month, day)
+
             else:
                 i_temporalEnd = None
+
+        # matching 'seit YYYY.'
+        elif re.search(r'(seit)\d{4}', i_string):
+            i_temporalStart = re.search(pattern=r'(?<=(seit))\d{4}', string=i_string).group()
+            i_temporalStart = datetime(int(i_temporalStart), 1,1)
+            i_temporalEnd = None
+
+        # matching '(seit)(MM.YYYY)'
+        elif re.search(r'(seit)(\d{2}\.\d{4})', i_string):
+            i_temporalStart = re.search(pattern=r'(?<=(seit))\d{2}\.\d{4}', string=i_string).group()
+            month, year = map(int, i_temporalStart.split('.'))
+            i_temporalStart = datetime(int(year), int(month),1)
+            i_temporalEnd = None
+
+        # matching '(seit)(DD.MM.YYYY)'
+        elif re.search(r'(seit)(\d{2}\.\d{2}\.\d{4})', i_string):
+            i_temporalStart = re.search(pattern=r'(?<=(seit))\d{2}\.\d{2}\.\d{4}', string=i_string).group()
+            day, month, year = map(int, i_temporalStart.split('.'))
+            i_temporalStart = datetime(int(year), int(month),int(day))
+            i_temporalEnd = None
 
         else:
             i_temporalStart = None
@@ -145,3 +288,5 @@ def split_name(pdf: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: A pandas DataFrame containing extracted fields as separate columns.
     """
+
+
