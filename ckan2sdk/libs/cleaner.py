@@ -5,8 +5,6 @@ import jaro
 import calendar
 from datetime import datetime
 
-re.sub(r'ab ', 'seit ', 'ab 01.01.2019')
-
 def clean_tags(pdf: pd.DataFrame) -> pd.DataFrame: 
     return pdf
 
@@ -173,10 +171,7 @@ def split_timerange(pdf: pd.DataFrame) -> pd.DataFrame:
 
         # Tests
         i_string = pdf[i]
-        # i_string = 'laufendeNachführungseit06.2021'
-        # # i_string = '1.1998'
-        # i_string = "1870-1990"
-        print(i_string)
+        # print(i_string)
 
         # matching YYYY > exactly/only 4 digits
         if re.search(r'(^\d{4}$)', i_string):
