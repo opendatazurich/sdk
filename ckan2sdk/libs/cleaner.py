@@ -4,6 +4,7 @@ from mapping import *
 import jaro
 import calendar
 from datetime import datetime
+import json
 
 def clean_tags(pdf: pd.DataFrame) -> pd.DataFrame: 
     return pdf
@@ -122,7 +123,6 @@ def fuzzymatch_dep_da(pdf: pd.DataFrame, departement: str, dienstabteilung: str,
 
     return pdf
 
-
 def split_timerange(pdf: pd.DataFrame) -> pd.DataFrame:
     """
     Splitting column 'timeRange' in order to extract the temporalStart and temporalEnd
@@ -169,9 +169,10 @@ def split_timerange(pdf: pd.DataFrame) -> pd.DataFrame:
     # looping all entries
     for i in range(len(pdf)):
 
-        # Tests
         i_string = pdf[i]
-        # print(i_string)
+
+        i_temporalStart = pd.NaT
+        i_temporalEnd = pd.NaT
 
         # matching YYYY > exactly/only 4 digits
         if re.search(r'(^\d{4}$)', i_string):
@@ -214,7 +215,7 @@ def split_timerange(pdf: pd.DataFrame) -> pd.DataFrame:
                 i_temporalStart = datetime(int(year), int(month), 1)
 
             else:
-                i_temporalStart = None
+                i_temporalStart = pd.NaT
 
             # everything after the dash > temporalEnd
             i_temporalEnd = re.search(r'(?<=-).+', string = i_string).group()
@@ -237,32 +238,31 @@ def split_timerange(pdf: pd.DataFrame) -> pd.DataFrame:
                 i_temporalEnd = datetime(year, month, day)
 
             else:
-                i_temporalEnd = None
+                i_temporalEnd = pd.NaT
 
         # matching 'seit YYYY.'
         elif re.search(r'(seit)\d{4}', i_string):
             i_temporalStart = re.search(pattern=r'(?<=(seit))\d{4}', string=i_string).group()
             i_temporalStart = datetime(int(i_temporalStart), 1,1)
-            i_temporalEnd = None
+            i_temporalEnd = pd.NaT
 
         # matching '(seit)(MM.YYYY)'
         elif re.search(r'(seit)(\d{2}\.\d{4})', i_string):
             i_temporalStart = re.search(pattern=r'(?<=(seit))\d{2}\.\d{4}', string=i_string).group()
             month, year = map(int, i_temporalStart.split('.'))
             i_temporalStart = datetime(int(year), int(month),1)
-            i_temporalEnd = None
+            i_temporalEnd = pd.NaT
 
         # matching '(seit)(DD.MM.YYYY)'
         elif re.search(r'(seit)(\d{2}\.\d{2}\.\d{4})', i_string):
             i_temporalStart = re.search(pattern=r'(?<=(seit))\d{2}\.\d{2}\.\d{4}', string=i_string).group()
             day, month, year = map(int, i_temporalStart.split('.'))
             i_temporalStart = datetime(int(year), int(month),int(day))
-            i_temporalEnd = None
+            i_temporalEnd = pd.NaT
 
-        else:
-            i_temporalStart = None
-            i_temporalEnd = None
-
+        # else:
+        #     i_temporalStart = pd.NaT
+        #     i_temporalEnd = pd.NaT
 
         i_pdf_temporalStartEnd = pd.DataFrame({'temporalStart': [i_temporalStart], 'temporalEnd': [i_temporalEnd]})
         pdf_temporalStartEnd = pd.concat([pdf_temporalStartEnd, i_pdf_temporalStartEnd])
@@ -270,18 +270,82 @@ def split_timerange(pdf: pd.DataFrame) -> pd.DataFrame:
 
     return pdf_temporalStartEnd
 
-def split_name(pdf: pd.DataFrame) -> pd.DataFrame:
+def create_attributes_export(pdf: pd.DataFrame) -> pd.DataFrame:
     """
-    Splitting column 'timeRange' in order to extract the temporalStart and temporalEnd
+    Creates export object containing all attributes
 
-    The function splits the column timeRange (metadata field from ckan) and extracts the temporalStart and temporalEnd.
-    The extracted fields will get assigned to new columns.
+    Creates export object containing splited and cleaned attributes
+    The function mainly splits the column 'sszFiels' which lists all attributes in a dictionary like way. Each attribute is described in three ways:
+    - A technical name (corresponds to the actual column name)
+    - A spoken name (short description of technical name)
+    - A description (describes the attribute
+
+    The output object holds each attributes in a separate row, identified by the dataset's name
+
+    Args:
+        pdf (pandas dataFrame): Pandas dataFrame as returned by call_api() function
+        The pdf must contain the columns 'sszFields' and 'name'
+
+    Returns:
+        pd.DataFrame: A pandas DataFrame containing extracted and cleaned fields as separate columns.
+    """
+    # initialising empty Output-DataFrame
+    pdf_attributes = pd.DataFrame()
+
+    for i in range(len(pdf)):
+
+        i_name = pdf.iloc[i]['name']
+        i_attr = pdf.iloc[i]['sszFields']
+
+        if i_attr != '':
+
+            # read/evaluate string with list in list > gives back attr_spoken and attr_descr
+            i_attr = pd.DataFrame(json.loads(i_attr), columns=['attr_spoken','attr_descr'])
+
+            # read out attr_tech (word after last space) / clean extractet string
+            # i_attr['attr_tech'] = [re.search(r'(?<=\s)[^\s]*$', string = i).group() if re.search(r'(?<=\s)[^\s]*$', string = i) else '' for i in i_attr['attr_spoken']]
+            i_attr['attr_tech'] = [re.search(r'\(technisch:(.*)', string = i).group() if re.search(r'\(technisch:(.*)', string = i) else '' for i in i_attr['attr_spoken']]
+            i_attr['attr_tech'] = [re.sub(r'\(technisch: ', '', i) if re.search(r'\(technisch: ', i) else '' for i in i_attr['attr_tech']] # replace closing paranthesis
+            # i_attr['attr_tech'] = [re.sub(r'\)\b', '', i) if re.search(r'\)\b', i) else '' for i in i_attr['attr_tech']] # replace closing paranthesis
+            i_attr['attr_tech'] = [re.sub(r'\)$', '', i) for i in i_attr['attr_tech']] # replace closing paranthesis
+
+            # extract attr_spoken i.e. everything before last opening paranthesis / clean extractet string
+            i_attr['attr_spoken'] = [re.search(r'^[^(]+', string = i).group() for i in i_attr['attr_spoken']]
+            i_attr['attr_spoken'] = [re.sub(r'\s+', '', i) for i in i_attr['attr_spoken']]
+
+        else:
+            i_attr = pd.DataFrame({'attr_tech': [None],'attr_spoken': [None],'attr_spoken': [None]})
+
+            # add identifier of attributes
+
+        # adding name
+        i_attr['name'] = i_name
+
+        # concatenate and assign column type...
+        pdf_attributes = pd.concat([pdf_attributes, i_attr])
+        pdf_attributes['attr_descr'] = pdf_attributes['attr_descr'].astype(str)
+        pdf_attributes['attr_tech'] = pdf_attributes['attr_tech'].astype(str)
+        pdf_attributes['attr_spoken'] = pdf_attributes['attr_spoken'].astype(str)
+
+
+    return pdf_attributes
+
+def extract_name_prefix(pdf: pd.DataFrame) -> pd.DataFrame:
+    """
+    Extract name prefix
+
+    The function extracts the prefix of the name (everything before the first '_'
 
     Args:
         pdf (pandas dataFrame): Pandas dataFrame as returned by call_api() function
 
     Returns:
-        pd.DataFrame: A pandas DataFrame containing extracted fields as separate columns.
+        pd.DataFrame: A pandas DataFrame containing extracted field as separate columns.
     """
+
+    pdf_name_prefix = pdf.str.extract(r'([^_]*)')
+    pdf_name_prefix.columns = ['name_prefix']
+
+    return pdf_name_prefix
 
 
