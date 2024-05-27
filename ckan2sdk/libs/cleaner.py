@@ -348,4 +348,29 @@ def extract_name_prefix(pdf: pd.DataFrame) -> pd.DataFrame:
 
     return pdf_name_prefix
 
+def create_filter_variable(pdf: pd.DataFrame) -> pd.DataFrame:
+    """
+    Extract name prefix
 
+    The function extracts the prefix of the name (everything before the first '_'
+
+    Args:
+        pdf (pandas dataFrame): Pandas dataFrame as returned by call_api() function
+
+    Returns:
+        pd.DataFrame: A pandas DataFrame containing extracted field as separate columns.
+    """
+
+    res_list = []
+    matching_set = {'sasa','geodaten'}
+    for i in range(len(pdf)):
+
+        i_tags = pdf.iloc[i]['tags']
+        i_tags = {i['display_name'] for i in i_tags}
+        if len(matching_set & i_tags) > 0:
+            i_back = True
+        else:
+            i_back = False
+        res_list.append(i_back)
+
+    return(res_list)

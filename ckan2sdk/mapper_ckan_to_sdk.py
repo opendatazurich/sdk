@@ -39,9 +39,9 @@ pdf_attributes['attr_descr'] = [ILLEGAL_CHARACTERS_RE.sub(r'',i) for i in pdf_at
 pdf_attributes.to_excel("attributes_testexport.xlsx", index=False)
 
 # Test export dataset-metadata
-subset = ['name','name_prefix','author','author_dept_gs','author_da_gs', 'timeRange','temporalStart', 'temporalEnd']
+pdf['filter_tag'] = cleaner.create_filter_variable(pdf)
+subset = ['name','name_prefix','author','author_dept_gs','author_da_gs', 'timeRange','temporalStart', 'temporalEnd','filter_tag']
 pdf = pdf[subset]
-pdf = pdf[pdf['name_prefix'] != 'geo']
 pdf.to_excel("cleaning_ckan_tocheck.xlsx", index=False)
 
 
