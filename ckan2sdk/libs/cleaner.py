@@ -348,21 +348,20 @@ def extract_name_prefix(pdf: pd.DataFrame) -> pd.DataFrame:
 
     return pdf_name_prefix
 
-def create_filter_variable(pdf: pd.DataFrame) -> pd.DataFrame:
+def create_filter_variable(pdf: pd.DataFrame, matching_set = {'sasa','geodaten'}) -> pd.DataFrame:
     """
-    Extract name prefix
+    Creates filter variable based on given set of strings    >>>   based on tags (which are in dictionary in pdf column) according to given set of strings
 
-    The function extracts the prefix of the name (everything before the first '_'
+    The function creates a boolean filter variable based on given set of strings which match with tags in the tag column (which are stored as dictionary)
 
     Args:
         pdf (pandas dataFrame): Pandas dataFrame as returned by call_api() function
 
     Returns:
-        pd.DataFrame: A pandas DataFrame containing extracted field as separate columns.
+        list: List with boolean values indicating if matching set matches any tags dictionary or not
     """
 
     res_list = []
-    matching_set = {'sasa','geodaten'}
     for i in range(len(pdf)):
 
         i_tags = pdf.iloc[i]['tags']
