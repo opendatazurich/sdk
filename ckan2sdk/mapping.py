@@ -20,7 +20,7 @@ MAPPING_CLEAN_TO_SDK = {
     "maintainer_email": "OGD_maintainerEmail",
     "metadata_created": None,
     "metadata_modified": None,
-    "name": "OGD_dataType",
+    "name": "package_name",
     "notes": "description",
     "num_resources": None,
     "num_tags": None,
@@ -43,7 +43,8 @@ MAPPING_CLEAN_TO_SDK = {
     "resources": None,
     "tags": None,
     "relationships_as_subject": None,
-    "relationships_as_object": None
+    "relationships_as_object": None,
+    "attributes": "attributes"
 }
 
 # keep only entries where value is not None

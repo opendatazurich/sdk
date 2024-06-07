@@ -6,9 +6,6 @@ import calendar
 from datetime import datetime
 import json
 
-def clean_tags(pdf: pd.DataFrame) -> pd.DataFrame: 
-    return pdf
-
 def split_dept_da(pdf: pd.Series) -> pd.DataFrame:
     """
     Splitting column 'author' in order to extract the departement and dienstabteilung
@@ -123,7 +120,7 @@ def fuzzymatch_dep_da(pdf: pd.DataFrame, departement: str, dienstabteilung: str,
 
     return pdf
 
-def split_timerange(pdf: pd.DataFrame) -> pd.DataFrame:
+def split_timerange(pdf: pd.Series) -> pd.DataFrame:
     """
     Splitting column 'timeRange' in order to extract the temporalStart and temporalEnd
 
@@ -170,7 +167,6 @@ def split_timerange(pdf: pd.DataFrame) -> pd.DataFrame:
     for i in range(len(pdf)):
 
         i_string = pdf[i]
-
         i_temporalStart = pd.NaT
         i_temporalEnd = pd.NaT
 
@@ -206,6 +202,8 @@ def split_timerange(pdf: pd.DataFrame) -> pd.DataFrame:
             elif re.search(r'(^\d{1,2}\.\d{1,2}\.\d{4}$)', i_temporalStart):
                 i_temporalStart = re.search(r'(^\d{1,2}\.\d{1,2}\.\d{4}$)', string = i_temporalStart).group()
                 day, month, year = map(int, i_temporalStart.split('.'))
+                if day == 0:
+                    day = "1"
                 i_temporalStart = datetime(int(year), int(month), int(day))
 
             # matching (M|MM).YYYY
@@ -270,6 +268,120 @@ def split_timerange(pdf: pd.DataFrame) -> pd.DataFrame:
 
     return pdf_temporalStartEnd
 
+def unlist_first_element(pdf: pd.Series) -> pd.Series:
+    """
+    Unlist first element of list given as entries of a pd.Series
+
+    The function unlists the first element of each lists given as entries of a pd.Series. If a list is of length 0, it returns an empty string.
+
+    Args:
+        pdf (pandas dataFrame): Pandas dataFrame as returned by call_api() function
+
+    Returns:
+        pd.Series: Series with only first element of each list
+    """
+    res = [pdf.iloc[i][0] if len(pdf.iloc[i] ) > 0 else "" for i in range(len(pdf))]
+    return pd.Series(res)
+
+# pdf = pdf['dateLastUpdated']
+
+# i_string = pdf['dateLastUpdated'][0]
+def extract_date(pdf: pd.Series) -> pd.Series:
+
+    pdf_template = pd.DataFrame()
+    res_list = []
+    pdf = pdf.astype(str)
+    pdf = [re.sub(r'\s+', '', pdf[i]) for i in range(len(pdf))] # trimming all whitespace
+
+    for i in range(len(pdf)):
+
+        i_string = pdf[i]
+        # i_string = i_string.split(','))
+
+        # matching (D)D.(M)M.YYYY > a only single 'full' date format
+        if re.search(r'(^\d{1,2}\.\d{1,2}\.\d{4}$)', i_string):
+
+            i_temp = re.search(r'(^\d{1,2}\.\d{1,2}\.\d{4}$)', string = i_string).group()
+            day, month, year = map(int, i_temp.split('.'))
+            i_date = datetime(year, month, day)
+
+            # i_time = re.search(r'(^\d{1,2}\.\d{1,2}\.\d{4}$)', string = i_string).group()
+
+            # day, month, year = map(int, i_temp.i_string[0]('.'))
+            # i_date = datetime(year, month, day)
+
+        else:
+            i_date = None
+
+        res_list.append(i_date)
+        # i_pdf_template = pd.DataFrame({'temporalStart': [i_date]})
+        # pdf_template = pd.concat([pdf_template, i_pdf_template])
+        # pdf_template.reset_index(drop=True, inplace=True)
+
+    return res_list
+
+
+def clean_groups(pdf: pd.Series) -> pd.Series:
+
+    res = []
+    for i in pdf:
+        i_res = [{"group":j['name']} for j in i]
+        res.append(i_res)
+    return(pd.Series(res))
+
+
+# i_attr = pdf['sszFields'][2]
+def clean_attributes(pdf: pd.Series) -> pd.Series:
+
+    res = []
+    for i in pdf:
+
+        i_attr = i
+
+        if i_attr != '':
+
+            # read/evaluate string with list in list > gives back attr_spoken and attr_descr
+            i_attr = pd.DataFrame(json.loads(i_attr), columns=['attr_spoken','attr_descr'])
+
+            # read out attr_tech (word after last space) / clean extractet string
+            # i_attr['attr_tech'] = [re.search(r'(?<=\s)[^\s]*$', string = i).group() if re.search(r'(?<=\s)[^\s]*$', string = i) else '' for i in i_attr['attr_spoken']]
+            i_attr['attr_tech'] = [re.search(r'\(technisch:(.*)', string = i).group() if re.search(r'\(technisch:(.*)', string = i) else '' for i in i_attr['attr_spoken']]
+            i_attr['attr_tech'] = [re.sub(r'\(technisch: ', '', i) if re.search(r'\(technisch: ', i) else '' for i in i_attr['attr_tech']] # replace closing paranthesis
+            # i_attr['attr_tech'] = [re.sub(r'\)\b', '', i) if re.search(r'\)\b', i) else '' for i in i_attr['attr_tech']] # replace closing paranthesis
+            i_attr['attr_tech'] = [re.sub(r'\)$', '', i) for i in i_attr['attr_tech']] # replace closing paranthesis
+
+            # extract attr_spoken i.e. everything before last opening paranthesis / clean extractet string
+            i_attr['attr_spoken'] = [re.search(r'^[^(]+', string = i).group() for i in i_attr['attr_spoken']]
+            i_attr['attr_spoken'] = [re.sub(r'\s+', '', i) for i in i_attr['attr_spoken']]
+
+
+        else:
+            i_attr = pd.DataFrame({'attr_tech': [None],'attr_spoken': [None],'attr_spoken': [None]})
+
+        i_attr = i_attr.to_json(orient = "records")
+        res.append(i_attr)
+
+    return(pd.Series(res))
+
+def date_to_unixtime(pdf: pd.Series) -> pd.Series:
+    """
+    Unlist first element of list given as entries of a pd.Series
+
+    The function unlists the first element of each lists given as entries of a pd.Series. If a list is of length 0, it returns an empty string.
+
+    Args:
+        pdf (pandas dataFrame): Pandas dataFrame as returned by call_api() function
+
+    Returns:
+        pd.Series: Series with only first element of each list
+    """
+
+    # convert datetime to integer64
+    res = pd.to_datetime(pdf, errors = 'coerce').astype('int64')/ 10**9
+    res[res == -9223372036.854776] = None # set this value to None (default value for non-accurate-unix-timestamps > results from line above)$
+
+    return res
+
 def create_attributes_export(pdf: pd.DataFrame) -> pd.DataFrame:
     """
     Creates export object containing all attributes
@@ -330,24 +442,8 @@ def create_attributes_export(pdf: pd.DataFrame) -> pd.DataFrame:
 
     return pdf_attributes
 
-def extract_name_prefix(pdf: pd.DataFrame) -> pd.DataFrame:
-    """
-    Extract name prefix
-
-    The function extracts the prefix of the name (everything before the first '_'
-
-    Args:
-        pdf (pandas dataFrame): Pandas dataFrame as returned by call_api() function
-
-    Returns:
-        pd.DataFrame: A pandas DataFrame containing extracted field as separate columns.
-    """
-
-    pdf_name_prefix = pdf.str.extract(r'([^_]*)')
-    pdf_name_prefix.columns = ['name_prefix']
-
-    return pdf_name_prefix
-
+#TODO
+#
 def create_filter_variable(pdf: pd.DataFrame, matching_set = {'sasa','geodaten'}) -> pd.DataFrame:
     """
     Creates filter variable based on given set of strings    >>>   based on tags (which are in dictionary in pdf column) according to given set of strings
