@@ -321,11 +321,11 @@ def extract_date(pdf: pd.Series) -> pd.Series:
     return res_list
 
 
-def clean_groups(pdf: pd.Series) -> pd.Series:
+def extract_keys(pdf: pd.Series, key_to_extract: str, new_key_name: str) -> pd.Series:
 
     res = []
     for i in pdf:
-        i_res = [{"group":j['name']} for j in i]
+        i_res = [{new_key_name:j[key_to_extract]} for j in i]
         res.append(i_res)
     return(pd.Series(res))
 
