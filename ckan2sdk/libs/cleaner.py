@@ -54,26 +54,20 @@ def split_dept_da(pdf: pd.Series) -> pd.DataFrame:
     # dropping columns
     pdf_author.drop(["commas","c0","c1","c2","c3","c4","c5"], inplace=True, axis=1)
 
-    # # assigning author_org / cleaning author_dept and author_da
-    # pdf_author.loc[pdf_author[output_column_dept].isin(MAPPING_DEPT_DA.keys()),output_column_org] = "Stadt Zürich"
-    # pdf_author.loc[~pdf_author[output_column_dept].isin(MAPPING_DEPT_DA.keys()),output_column_org] = pdf_author[output_column_dept]
-    # pdf_author.loc[~pdf_author[output_column_dept].isin(MAPPING_DEPT_DA.keys()),output_column_dept] = None
-    # pdf_author.loc[~pdf_author[output_column_da].isin([item for sublist in MAPPING_DEPT_DA.values() for item in sublist]),output_column_da] = None
-
     return pdf_author
 
 def fuzzymatch_dep_da(pdf: pd.DataFrame, departement: str, dienstabteilung: str, min_simularity: float) -> list:
     """
     Fuzzy-matching column departement and dienstabteilung to given grobstruktur
 
-    The function fuzzy matches the columns departement and dienstabteilung, as extractet by split_dept_da() to the names given by grobstruktur.json
+    The function fuzzy matches the columns departement and dienstabteilung, as extractet by split_dept_da(), to the names given by grobstruktur.json
     The matched fields will get assigned to new columns.
 
     Args:
         pdf (pandas dataFrame): Pandas dataFrame as returned by call_api() function
         departement (str): Name of 'departement' column in pdf
         dienstabteilung (str): Name of 'dienstabteilung' column in pdf
-        min_simularity (float): Minimum distance which should get considered when comparing strings (Jaro-Winkler metric)
+        min_simularity (float): Minimum distance which should be considered when comparing strings (Jaro-Winkler metric)
 
     Returns:
         pd.DataFrame: A pandas DataFrame containing extracted fields as separate columns.
@@ -128,7 +122,7 @@ def split_timerange(pdf: pd.Series) -> pd.DataFrame:
     The extracted fields will get assigned to new columns.
 
     Args:
-        pdf (pandas dataFrame): Pandas dataFrame as returned by call_api() function
+        pdf (pandas Series): Pandas dataFrame as returned by call_api() function
 
     Returns:
         pd.DataFrame: A pandas DataFrame containing extracted fields as separate columns.
@@ -272,10 +266,10 @@ def unlist_first_element(pdf: pd.Series) -> pd.Series:
     """
     Unlist first element of list given as entries of a pd.Series
 
-    The function unlists the first element of each lists given as entries of a pd.Series. If a list is of length 0, it returns an empty string.
+    The function unlists the first element of each list given as entries of a pd.Series. If a list is of length 0, it returns an empty string.
 
     Args:
-        pdf (pandas dataFrame): Pandas dataFrame as returned by call_api() function
+        pdf (pandas Series): Pandas dataFrame as returned by call_api() function
 
     Returns:
         pd.Series: Series with only first element of each list
@@ -283,10 +277,18 @@ def unlist_first_element(pdf: pd.Series) -> pd.Series:
     res = [pdf.iloc[i][0] if len(pdf.iloc[i] ) > 0 else "" for i in range(len(pdf))]
     return pd.Series(res)
 
-# pdf = pdf['dateLastUpdated']
-
-# i_string = pdf['dateLastUpdated'][0]
 def extract_date(pdf: pd.Series) -> pd.Series:
+    """
+    Extract date out of a string
+
+    The function extracts a date format (D)D.(M)M.YYYY out of a string and gives it back as a datetime format. If there is no
+
+    Args:
+        pdf (pandas Series): Pandas Series
+
+    Returns:
+        pd.Series: Series with extracted dates
+    """
 
     pdf_template = pd.DataFrame()
     res_list = []
@@ -320,8 +322,20 @@ def extract_date(pdf: pd.Series) -> pd.Series:
 
     return res_list
 
-
 def extract_keys(pdf: pd.Series, key_to_extract: str, new_key_name: str) -> pd.Series:
+    """
+    Extract certain key value pair out of a dictionary
+
+    The function extracts a certain key value pair out of a dictionary and stores the value in a dictionary under a given new key
+
+    Args:
+        pdf (pandas Series): Pandas Series
+        key_to_extract (str): Name of key to extract
+        new_key_name (str): Name of new key to store value in
+
+    Returns:
+        pd.Series: Series with dictionaries
+    """
 
     res = []
     for i in pdf:
@@ -329,10 +343,21 @@ def extract_keys(pdf: pd.Series, key_to_extract: str, new_key_name: str) -> pd.S
         res.append(i_res)
     return(pd.Series(res))
 
-
-# i_attr = pdf['sszFields'][2]
 def clean_attributes(pdf: pd.Series) -> pd.Series:
+    """
+    Clean attribute
 
+    The function cleans attributes (which are stored in dictionaries) meaning it creates new dictionaries with three keys:
+    - A technical name (corresponds to the actual column name)
+    - A spoken name (short description of technical name)
+    - A description (describes the attribute)
+
+    Args:
+        pdf (pandas Series): Pandas Series
+
+    Returns:
+        pd.DataFrame: A pandas DataFrame containing extracted and cleaned fields as separate columns.
+    """
     res = []
     for i in pdf:
 
@@ -365,15 +390,15 @@ def clean_attributes(pdf: pd.Series) -> pd.Series:
 
 def date_to_unixtime(pdf: pd.Series) -> pd.Series:
     """
-    Unlist first element of list given as entries of a pd.Series
+    Convert datetime to unix timestamp
 
-    The function unlists the first element of each lists given as entries of a pd.Series. If a list is of length 0, it returns an empty string.
+    The function converts a datetime object a unix timestamp (int64). If this is not possible, 'None' is set
 
     Args:
-        pdf (pandas dataFrame): Pandas dataFrame as returned by call_api() function
+        pdf (pandas Series): Pandas Series
 
     Returns:
-        pd.Series: Series with only first element of each list
+        pd.Series: Series with int64 values
     """
 
     # convert datetime to integer64
@@ -381,6 +406,32 @@ def date_to_unixtime(pdf: pd.Series) -> pd.Series:
     res[res == -9223372036.854776] = None # set this value to None (default value for non-accurate-unix-timestamps > results from line above)$
 
     return res
+
+def create_filter_variable(pdf: pd.DataFrame, matching_set = {'sasa','geodaten'}) -> pd.DataFrame:
+    """
+    Creates filter variable based on given set of strings    >>>   based on tags (which are in dictionary in pdf column) according to given set of strings
+
+    The function creates a boolean filter variable based on given set of strings which match with tags in the tag column (which are stored as dictionary)
+
+    Args:
+        pdf (pandas Series): Pandas Series
+
+    Returns:
+        list: List with boolean values indicating if matching set matches any tags dictionary or not
+    """
+
+    res_list = []
+    for i in range(len(pdf)):
+
+        i_tags = pdf[i]
+        i_tags = {i['display_name'] for i in i_tags}
+        if len(matching_set & i_tags) > 0:
+            i_back = True
+        else:
+            i_back = False
+        res_list.append(i_back)
+
+    return(res_list)
 
 def create_attributes_export(pdf: pd.DataFrame) -> pd.DataFrame:
     """
@@ -442,30 +493,3 @@ def create_attributes_export(pdf: pd.DataFrame) -> pd.DataFrame:
 
     return pdf_attributes
 
-#TODO
-#
-def create_filter_variable(pdf: pd.DataFrame, matching_set = {'sasa','geodaten'}) -> pd.DataFrame:
-    """
-    Creates filter variable based on given set of strings    >>>   based on tags (which are in dictionary in pdf column) according to given set of strings
-
-    The function creates a boolean filter variable based on given set of strings which match with tags in the tag column (which are stored as dictionary)
-
-    Args:
-        pdf (pandas dataFrame): Pandas dataFrame as returned by call_api() function
-
-    Returns:
-        list: List with boolean values indicating if matching set matches any tags dictionary or not
-    """
-
-    res_list = []
-    for i in range(len(pdf)):
-
-        i_tags = pdf.iloc[i]['tags']
-        i_tags = {i['display_name'] for i in i_tags}
-        if len(matching_set & i_tags) > 0:
-            i_back = True
-        else:
-            i_back = False
-        res_list.append(i_back)
-
-    return(res_list)
