@@ -46,6 +46,7 @@ Mapping Metadata of Datenlieferant / Dataowner
 
 ## Contributors
 
-* [@Marco](mailto:) 👨‍💻 
-* [@Lorenz](mailto:) 👨‍💻 
+* [@DonGoginho](mailto:) 👨‍💻 
+* [@lbo-dvlp](mailto:) 👨‍💻
+* [@alexanderguentert](mailto:) 👨‍💻 
 * [@NielsHellinga](mailto:niels.hellinga@banian.ch) 👨‍💻 Data Engineer
