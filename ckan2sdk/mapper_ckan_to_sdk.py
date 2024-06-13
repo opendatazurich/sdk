@@ -16,7 +16,7 @@ pdf_author = cleaner.split_dept_da(pdf['author']) # splitting author
 pdf_author = cleaner.fuzzymatch_dep_da(pdf_author, departement="author_dept", dienstabteilung="author_da", min_simularity=0.8) # fuzzy match author_dept and author_da to grobstruktur
 pdf = pd.concat([pdf,pdf_author], axis=1) # concat to pdf
 
-pdf['updateInterval'] = cleaner.unlist_first_element(pdf['updateInterval']) # unlist field updateInterval
+pdf['updateInterval'] = cleaner.unlist_first_element(pdf['updateInterval'])  # unlist field updateInterval
 
 pdf_cleaned_timerange = cleaner.split_timerange(pdf['timeRange']) # split field timeRange
 pdf = pd.concat([pdf,pdf_cleaned_timerange], axis = 1) # concat newly created fields to pdf
@@ -37,7 +37,6 @@ pdf['tags'] = cleaner.extract_keys(pdf=pdf['tags'], key_to_extract="name", new_k
 pdf['attributes'] = cleaner.clean_attributes(pdf['sszFields'])
 
 # 2. Subset data (e.g. no geo datasets / no SSZ datasets etc.) > set filter variable
-pdf['filter_tag'] = cleaner.create_filter_variable(pdf=pdf['tags'], matching_set={'sasa','geodaten'})
 pdf = pdf[pdf['filter_tag']==False] # only entries which do not match defined matching_set
 
 
