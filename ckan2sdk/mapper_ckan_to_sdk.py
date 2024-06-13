@@ -68,15 +68,15 @@ pdf_sdk.to_json("testexport_10datasets.json", orient='records', default_handler=
 # 4.2 Testexport for Marco
 subset = ['name','author','author_dept_gs','author_da_gs', 'timeRange','temporalStart', 'temporalEnd','filter_tag']
 pdf = pdf[subset]
-pdf.to_excel("cleaning_ckan_tocheck_240610.xlsx", index=False)
+pdf.to_excel("cleaning_ckan_tocheck.xlsx", index=False)
 
 # 4.3 Testexport for attributes for checks
-pdf_attributes = cleaner.create_attributes_export(pdf)
-pdf_attributes = pd.merge(pdf_attributes, pdf[['name','author_dept_gs','author_da_gs','name_prefix']], how='left', on=['name'])
+# pdf_attributes = cleaner.create_attributes_export(pdf)
+# pdf_attributes = pd.merge(pdf_attributes, pdf[['name','author_dept_gs','author_da_gs','name_prefix']], how='left', on=['name'])
 
-from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
-pdf_attributes['attr_descr'] = [ILLEGAL_CHARACTERS_RE.sub(r'',i) for i in pdf_attributes['attr_descr']]
-pdf_attributes.to_excel("attributes_testexport.xlsx", index=False)
+# from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
+# pdf_attributes['attr_descr'] = [ILLEGAL_CHARACTERS_RE.sub(r'',i) for i in pdf_attributes['attr_descr']]
+# pdf_attributes.to_excel("attributes_testexport.xlsx", index=False)
 
 # sdk_columns = [mapping_clean_to_sdk[value] for value in mapping_clean_to_sdk]
 # sdk_columns = SDK.__annotations__
