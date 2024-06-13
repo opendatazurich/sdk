@@ -419,10 +419,8 @@ def create_filter_variable(pdf: pd.DataFrame, matching_set = {'sasa','geodaten'}
     Returns:
         list: List with boolean values indicating if matching set matches any tags dictionary or not
     """
-
     res_list = []
     for i in range(len(pdf)):
-
         i_tags = pdf[i]
         i_tags = {i['display_name'] for i in i_tags}
         if len(matching_set & i_tags) > 0:

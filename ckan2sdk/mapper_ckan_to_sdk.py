@@ -30,11 +30,12 @@ pdf['dateFirstPublished'] = cleaner.date_to_unixtime(pdf['dateFirstPublished'])
 
 pdf['groups'] = cleaner.extract_keys(pdf=pdf['groups'], key_to_extract="name", new_key_name="group")
 
-pdf['filter_tag'] = cleaner.create_filter_variable(pdf=pdf, matching_set={'sasa','geodaten'}) #
+pdf['filter_tag'] = cleaner.create_filter_variable(pdf=pdf['tags'], matching_set={'sasa','geodaten'})
 
 pdf['tags'] = cleaner.extract_keys(pdf=pdf['tags'], key_to_extract="name", new_key_name="tag")
 
 pdf['attributes'] = cleaner.clean_attributes(pdf['sszFields'])
+
 
 # 2. Subset data (e.g. no geo datasets / no SSZ datasets etc.) > set filter variable
 pdf = pdf[pdf['filter_tag']==False] # only entries which do not match defined matching_set
