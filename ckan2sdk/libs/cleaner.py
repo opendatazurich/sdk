@@ -456,7 +456,11 @@ def create_attributes_export(pdf: pd.DataFrame) -> pd.DataFrame:
     for i in range(len(pdf)):
 
         i_name = pdf.iloc[i]['name']
-        i_attr = pdf.iloc[i]['sszFields']
+        try:
+            # sszFields is not always present
+            i_attr = pdf.iloc[i]['sszFields']
+        except:
+            i_attr = ''
 
         if i_attr != '':
 

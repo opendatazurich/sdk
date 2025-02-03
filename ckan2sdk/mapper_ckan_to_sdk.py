@@ -36,6 +36,9 @@ pdf['tags'] = cleaner.extract_keys(pdf=pdf['tags'], key_to_extract="name", new_k
 
 pdf['attributes'] = cleaner.clean_attributes(pdf['sszFields'])
 
+# add name_prefix
+pdf['name_prefix'] = pdf['name'].str.split('_',expand=True)[0]
+
 
 # 2. Subset data (e.g. no geo datasets / no SSZ datasets etc.) > set filter variable
 pdf = pdf[pdf['filter_tag']==False] # only entries which do not match defined matching_set
@@ -68,17 +71,17 @@ pdf_sdk.to_json("testexport_10datasets.json", orient='records', default_handler=
 
 # 4.2 Testexport for Marco
 subset = ['name','author','author_dept_gs','author_da_gs', 'timeRange','temporalStart', 'temporalEnd','filter_tag']
-pdf = pdf[subset]
+pdf_to_check = pdf[subset]
 print('write excel ...')
-pdf.to_excel("cleaning_ckan_tocheck.xlsx", index=False)
+pdf_to_check.to_excel("cleaning_ckan_tocheck.xlsx", index=False)
 
 # 4.3 Testexport for attributes for checks
-# pdf_attributes = cleaner.create_attributes_export(pdf)
-# pdf_attributes = pd.merge(pdf_attributes, pdf[['name','author_dept_gs','author_da_gs','name_prefix']], how='left', on=['name'])
+pdf_attributes = cleaner.create_attributes_export(pdf)
+pdf_attributes = pd.merge(pdf_attributes, pdf[['name','title','author_dept_gs','author_da_gs','name_prefix']], how='left', on=['name'])
 
-# from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
-# pdf_attributes['attr_descr'] = [ILLEGAL_CHARACTERS_RE.sub(r'',i) for i in pdf_attributes['attr_descr']]
-# pdf_attributes.to_excel("attributes_testexport.xlsx", index=False)
+from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
+pdf_attributes['attr_descr'] = [ILLEGAL_CHARACTERS_RE.sub(r'',i) for i in pdf_attributes['attr_descr']]
+pdf_attributes.to_excel("attributes_testexport.xlsx", index=False)
 
 # sdk_columns = [mapping_clean_to_sdk[value] for value in mapping_clean_to_sdk]
 # sdk_columns = SDK.__annotations__

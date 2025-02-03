@@ -163,3 +163,4 @@ cython_debug/
 # outputfiles
 *cleaning_ckan_tocheck.xlsx
 *testexport_10datasets.json
+*attributes_testexport.xlsx
