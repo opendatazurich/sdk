@@ -73,14 +73,18 @@ pdf_sdk.to_json("testexport_10datasets.json", orient='records', default_handler=
 subset = ['name','author','author_dept_gs','author_da_gs', 'timeRange','temporalStart', 'temporalEnd','filter_tag']
 pdf_to_check = pdf[subset]
 print('write excel ...')
-pdf_to_check.to_excel("cleaning_ckan_tocheck.xlsx", index=False)
+# pdf_to_check.to_excel("cleaning_ckan_tocheck.xlsx", index=False)
 
 # 4.3 Testexport for attributes for checks
 pdf_attributes = cleaner.create_attributes_export(pdf)
 pdf_attributes = pd.merge(pdf_attributes, pdf[['name','title','author_dept_gs','author_da_gs','name_prefix']], how='left', on=['name'])
 
+# filter departement
+# pdf_attributes = pdf_attributes[pdf_attributes['author_dept_gs']=='Präsidialdepartement']
+
 from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 pdf_attributes['attr_descr'] = [ILLEGAL_CHARACTERS_RE.sub(r'',i) for i in pdf_attributes['attr_descr']]
+print('write excel ...')
 pdf_attributes.to_excel("attributes_testexport.xlsx", index=False)
 
 # sdk_columns = [mapping_clean_to_sdk[value] for value in mapping_clean_to_sdk]
