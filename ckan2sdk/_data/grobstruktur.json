@@ -222,5 +222,57 @@
     {
         "departement": "Gesundheits- und Umweltdepartement",
         "dienstabteilung": "St\u00e4dtische Gesundheitsdienste (SGD)"
+    },
+    {
+        "departement": "Allgemeine Verwaltung",
+        "dienstabteilung": "Gemeinde"
+    },
+    {
+        "departement": "Allgemeine Verwaltung",
+        "dienstabteilung": "Gemeinderat"
+    },
+    {
+        "departement": "Allgemeine Verwaltung",
+        "dienstabteilung": "Finanzkontrolle"
+    },
+    {
+        "departement": "Allgemeine Verwaltung",
+        "dienstabteilung": "Ombudsstelle"
+    },
+    {
+        "departement": "Allgemeine Verwaltung",
+        "dienstabteilung": "Stadtrat"
+    },
+    {
+        "departement": "Allgemeine Verwaltung",
+        "dienstabteilung": "Stadtkanzlei"
+    },
+    {
+        "departement": "Allgemeine Verwaltung",
+        "dienstabteilung": "Abteilung Rechtskonsulent"
+    },
+    {
+        "departement": "Allgemeine Verwaltung",
+        "dienstabteilung": "Datenschutzstelle"
+    },
+    {
+        "departement": "Allgemeine Verwaltung",
+        "dienstabteilung": "Gesamtverwaltung"
+    },
+    {
+        "departement": "Gesundheits- und Umweltdepartement",
+        "dienstabteilung": "Departementssekretariat GUD"
+    },
+    {
+        "departement": "Hochbaudepartement",
+        "dienstabteilung": "Departementssekretariat HBD"
+    },
+    {
+        "departement": "Schul- und Sportdepartement",
+        "dienstabteilung": "Departementssekretariat SSD"
+    },
+    {
+        "departement": "Sicherheitsdepartement",
+        "dienstabteilung": "Departementssekretariat SID"
     }
 ]
