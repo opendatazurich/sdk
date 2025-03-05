@@ -68,12 +68,13 @@ pdf_sdk = pdf_sdk.rename(columns=mapping.MAPPING_CLEAN_TO_SDK)
 # 4.1 Testexport for Nils
 print('write json ...')
 pdf_sdk.to_json("testexport_10datasets.json", orient='records', default_handler=str)
+#pdf_sdk.to_excel("testexport_10datasets.xlsx", index=False)
 
 # 4.2 Testexport for Marco
 subset = ['name','author','author_dept_gs','author_da_gs', 'timeRange','temporalStart', 'temporalEnd','filter_tag']
 pdf_to_check = pdf[subset]
 print('write excel ...')
-# pdf_to_check.to_excel("cleaning_ckan_tocheck.xlsx", index=False)
+pdf_to_check.to_excel("cleaning_ckan_tocheck.xlsx", index=False)
 
 # 4.3 Testexport for attributes for checks
 pdf_attributes = cleaner.create_attributes_export(pdf)
