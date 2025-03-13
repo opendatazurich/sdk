@@ -43,10 +43,10 @@ pdf['name_prefix'] = pdf['name'].str.split('_',expand=True)[0]
 # 2. Subset data (e.g. no geo datasets / no SSZ datasets etc.) > set filter variable
 pdf = pdf[pdf['filter_tag']==False] # only entries which do not match defined matching_set
 
-# filter author_da_gs for onboarding workshops
+# 2.1 filter data for onboarding workshops
 # Dienstabteilung
 author_da_gs_list = [
-    "Amt für Zusatzleistungen zur AHV/IV (AZL)",
+    # "Amt für Zusatzleistungen zur AHV/IV (AZL)",
     "Bevölkerungsamt (BVA)",
     "Dienstabteilung Verkehr (DAV)",
     "Entsorgung + Recycling Zürich (ERZ)",
@@ -58,10 +58,15 @@ author_da_gs_list = [
     "Umwelt- und Gesundheitsschutz (UGZ)",
     "Verkehrsbetriebe (VBZ)",
     "Wasserversorgung (WVZ)",
-    "Soziale Einrichtungen und Betriebe (SEB)",
+    # "Soziale Einrichtungen und Betriebe (SEB)",
 ]
 
-pdf = pdf[pdf['author_da_gs'].isin(author_da_gs_list)]
+# filter Departement
+author_dept_gs_list = [
+    "Sozialdepartement",
+]
+# apply filter to all data
+pdf = pdf[(pdf['author_da_gs'].isin(author_da_gs_list))|(pdf['author_dept_gs'].isin(author_dept_gs_list))]
 
 
 # 2.X Subset of Testdata (defined by Marco)
@@ -88,7 +93,7 @@ pdf_sdk = pdf_sdk.rename(columns=mapping.MAPPING_CLEAN_TO_SDK)
 
 # 4.1 Testexport for Nils
 print('write json ...')
-pdf_sdk.to_json("testexport.json", orient='records', default_handler=str)
+pdf_sdk.to_json("testexport_10datasets.json", orient='records', default_handler=str)
 #pdf_sdk.to_excel("testexport_10datasets.xlsx", index=False)
 
 # 4.2 Testexport for Marco
