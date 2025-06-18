@@ -86,37 +86,34 @@ test_datasets = ["sid_stapo_hundebestand_od1001",
 pdf_sdk = pdf
 
 # 3. Rename CKAN columns to SDK
-pdf_sdk = pdf_sdk[mapping.MAPPING_CLEAN_TO_SDK.keys()]
+# pdf_sdk = pdf_sdk[mapping.MAPPING_CLEAN_TO_SDK.keys()] # subsetting cols. Comment out if you want all cols
 pdf_sdk = pdf_sdk.rename(columns=mapping.MAPPING_CLEAN_TO_SDK)
+# add empty columns on the left for Attributskollektion (to be filled by data owners)
+empty_col_names = ["SDK Datenbestand-Sammlung", "SDK Datenbestand", "SDK Datensatz-Sammlung"]
+for col in empty_col_names:
+    pdf_sdk.insert(0, col, pd.NA)
+
 
 # 4. Testexports
 
-# 4.1 Testexport for Nils
+# 4.1 Testexport for Nils (Initialimport)
 print('write json ...')
 pdf_sdk.to_json("testexport_10datasets.json", orient='records', default_handler=str)
-#pdf_sdk.to_excel("testexport_10datasets.xlsx", index=False)
+pdf_sdk.to_excel("initialimport_datasets.xlsx", index=False)
 
-# 4.2 Testexport for Marco
-subset = ['title','notes','spatialRelationship','name','author','author_dept_gs','author_da_gs', 'timeRange','temporalStart', 'temporalEnd','filter_tag']
-pdf_to_check = pdf[subset]
-print('write excel ...')
-pdf_to_check.to_excel("cleaning_ckan_tocheck.xlsx", index=False)
+# 4.2 Testexport for Marco (deleted)
 
 # 4.3 Testexport for attributes for checks
 pdf_attributes = cleaner.create_attributes_export(pdf)
 pdf_attributes = pd.merge(pdf_attributes, pdf[['name','title','author_dept_gs','author_da_gs','name_prefix']], how='left', on=['name'])
-
-# filter departement
-# pdf_attributes = pdf_attributes[pdf_attributes['author_dept_gs']=='Präsidialdepartement']
+# add empty column on the left for Attributskollektion (to be filled by data owners)
+#pdf_attributes['Attributskollektion'] = pd.NA
+pdf_attributes.insert(0, 'Attributskollektion', pd.NA)
 
 from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 pdf_attributes['attr_descr'] = [ILLEGAL_CHARACTERS_RE.sub(r'',i) for i in pdf_attributes['attr_descr']]
 print('write excel ...')
-pdf_attributes.to_excel("attributes_testexport.xlsx", index=False)
+pdf_attributes.to_excel("initialimport_attribute.xlsx", index=False)
 
-# sdk_columns = [mapping_clean_to_sdk[value] for value in mapping_clean_to_sdk]
-# sdk_columns = SDK.__annotations__
-# for _, row in pdf_sdk.iterrows():
-#     item = SDK(**{key: row[key] for key in sdk_columns}).to_json()
-#     print(item)
+
 
