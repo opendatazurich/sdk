@@ -86,7 +86,7 @@ test_datasets = ["sid_stapo_hundebestand_od1001",
 pdf_sdk = pdf
 
 # 3. Rename CKAN columns to SDK
-# pdf_sdk = pdf_sdk[mapping.MAPPING_CLEAN_TO_SDK.keys()] # subsetting cols. Comment out if you want all cols
+pdf_sdk = pdf_sdk[mapping.MAPPING_CLEAN_TO_SDK.keys()] # subsetting cols. Comment out if you want all cols
 pdf_sdk = pdf_sdk.rename(columns=mapping.MAPPING_CLEAN_TO_SDK)
 # add empty columns on the left for Attributskollektion (to be filled by data owners)
 empty_col_names = ["SDK Datenbestand-Sammlung", "SDK Datenbestand", "SDK Datensatz-Sammlung"]
@@ -106,6 +106,8 @@ pdf_sdk.to_excel("initialimport_datasets.xlsx", index=False)
 # 4.3 Testexport for attributes for checks
 pdf_attributes = cleaner.create_attributes_export(pdf)
 pdf_attributes = pd.merge(pdf_attributes, pdf[['name','title','author_dept_gs','author_da_gs','name_prefix']], how='left', on=['name'])
+# rename col names according to mapping
+pdf_attributes = pdf_attributes.rename(columns=mapping.MAPPING_CLEAN_TO_SDK)
 # add empty column on the left for Attributskollektion (to be filled by data owners)
 #pdf_attributes['Attributskollektion'] = pd.NA
 pdf_attributes.insert(0, 'Attributskollektion', pd.NA)
