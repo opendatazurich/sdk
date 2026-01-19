@@ -3,8 +3,10 @@ CKAN - CLEAN - SDK
 """
 
 import pandas as pd
+from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 import libs.cleaner as cleaner
 from libs.ckan_api import call_api
+from libs.exports import *
 from interface.sdk import SDK
 import mapping as mapping
 
@@ -95,11 +97,11 @@ for col in empty_col_names:
 
 
 # 4. Testexports
-
+output_dir = "output"
 # 4.1 Testexport for Nils (Initialimport)
-print('write json ...')
-pdf_sdk.to_json("testexport_10datasets.json", orient='records', default_handler=str)
-pdf_sdk.to_excel("initialimport_datasets.xlsx", index=False)
+testexport_json(pdf_sdk, "testexport_10datasets.json", output_dir)
+#pdf_sdk.to_excel("initialimport_datasets.xlsx", index=False)
+export_to_excel(pdf_sdk, "initialimport_datasets.xlsx", output_dir)
 
 # 4.2 Testexport for Marco (deleted)
 
@@ -112,10 +114,11 @@ pdf_attributes = pdf_attributes.rename(columns=mapping.MAPPING_CLEAN_TO_SDK)
 #pdf_attributes['Attributskollektion'] = pd.NA
 pdf_attributes.insert(0, 'Attributskollektion', pd.NA)
 
-from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
+
 pdf_attributes['attr_descr'] = [ILLEGAL_CHARACTERS_RE.sub(r'',i) for i in pdf_attributes['attr_descr']]
-print('write excel ...')
-pdf_attributes.to_excel("initialimport_attribute.xlsx", index=False)
+export_to_excel(pdf_attributes, "initialimport_attribute.xlsx", output_dir)
+
+export_to_excel_by_org(pdf_sdk, pdf_attributes,filename="initialimport.xlsx", org_col="author_da_gs", output_dir=output_dir)
 
 
 
