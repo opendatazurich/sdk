@@ -9,6 +9,7 @@ from libs.ckan_api import call_api
 from libs.exports import *
 from interface.sdk import SDK
 import mapping as mapping
+from filter_org import *
 
 # 0. Call Api and fetch CKAN metadata to pdf
 pdf = call_api(limit=1500)
@@ -46,45 +47,9 @@ pdf['name_prefix'] = pdf['name'].str.split('_',expand=True)[0]
 pdf = pdf[pdf['filter_tag']==False] # only entries which do not match defined matching_set
 
 # 2.1 filter data for onboarding workshops
-# Dienstabteilung
-author_da_gs_list = [
-    # "Amt für Zusatzleistungen zur AHV/IV (AZL)",
-    "Bevölkerungsamt (BVA)",
-    "Dienstabteilung Verkehr (DAV)",
-    "Entsorgung + Recycling Zürich (ERZ)",
-    "Elektrizitätswerk der Stadt Zürich (ewz)",
-    "Immobilien Stadt Zürich (IMMO)",
-    "Organisation und Informatik (OIZ)", # no datasets not sure, if string correct
-    "Schulamt (SAM)",
-    "Tiefbauamt (TAZ)",
-    "Umwelt- und Gesundheitsschutz (UGZ)",
-    "Verkehrsbetriebe (VBZ)",
-    "Wasserversorgung (WVZ)",
-    # "Soziale Einrichtungen und Betriebe (SEB)",
-]
 
-# filter Departement
-author_dept_gs_list = [
-    "Sozialdepartement",
-]
-# apply filter to all data
-pdf = pdf[(pdf['author_da_gs'].isin(author_da_gs_list))|(pdf['author_dept_gs'].isin(author_dept_gs_list))]
+pdf = pdf[(pdf['author_da_gs'].isin(AUTHOR_DA_GS_LIST))|(pdf['author_dept_gs'].isin(AUTHOR_DEPT_GS_LIST))]
 
-
-# 2.X Subset of Testdata (defined by Marco)
-test_datasets = ["sid_stapo_hundebestand_od1001",
-                 "sid_wipo_gastwirtschaftsbetriebe",
-                 # "ted_taz_verkehrszaehlungen_werte_fussgaenger_velo", # Metadata in CKAN need to be adapted for matching with grobstruktur
-                 "vbz_fahrgastzahlen_ogd",
-                 "gud_ds_altersbefragung",
-                 "ugz_meteodaten_tagesmittelwerte",
-                 "ewz_stromabgabe_netzebenen_stadt_zuerich",
-                 "sd_sod_sozialhilfequote",
-                 "parlamentsdienste_paris_api",
-                 "prd_sar_schauspielhaus_repertoire",
-                 "zt_nachtleben"]
-
-#pdf_sdk = pdf[pdf['name'].isin(test_datasets)]
 pdf_sdk = pdf
 
 # 3. Rename CKAN columns to SDK
@@ -100,10 +65,8 @@ for col in empty_col_names:
 output_dir = "output"
 # 4.1 Testexport for Nils (Initialimport)
 testexport_json(pdf_sdk, "testexport_10datasets.json", output_dir)
-#pdf_sdk.to_excel("initialimport_datasets.xlsx", index=False)
 export_to_excel(pdf_sdk, "initialimport_datasets.xlsx", output_dir)
 
-# 4.2 Testexport for Marco (deleted)
 
 # 4.3 Testexport for attributes for checks
 pdf_attributes = cleaner.create_attributes_export(pdf)
