@@ -59,7 +59,7 @@ pdf["ogd_dataset_url"] = CKAN_BASE_URL + "/dataset/" +pdf["name"]
 pdf_sdk = pdf
 
 # 3. Rename CKAN columns to SDK
-# pdf_sdk = pdf_sdk[pdf_sdk.columns.intersection(mapping.MAPPING_CLEAN_TO_SDK.keys())] # subsetting cols. Comment out if you want all cols
+pdf_sdk = pdf_sdk[pdf_sdk.columns.intersection(mapping.MAPPING_CLEAN_TO_SDK.keys())] # subsetting cols. Comment out if you want all cols
 pdf_sdk = pdf_sdk.rename(columns=mapping.MAPPING_CLEAN_TO_SDK)
 # add empty columns on the left for Attributskollektion (to be filled by data owners)
 empty_col_names = ["SDK Datenbestand-Sammlung", "SDK Datenbestand", "SDK Datensatz-Sammlung"]
@@ -77,6 +77,8 @@ export_to_excel(pdf_sdk, "initialimport_datasets.xlsx", output_dir)
 # 4.3 Testexport for attributes for checks
 pdf_attributes = cleaner.create_attributes_export(pdf)
 pdf_attributes = pd.merge(pdf_attributes, pdf[['name','title','author_dept_gs','author_da_gs','name_prefix']], how='left', on=['name'])
+# replace illegal chars for excel
+pdf_attributes['attr_descr'] = [ILLEGAL_CHARACTERS_RE.sub(r'',i) for i in pdf_attributes['attr_descr']]
 # rename col names according to mapping
 pdf_attributes = pdf_attributes.rename(columns=mapping.MAPPING_CLEAN_TO_SDK)
 # add empty column on the left for Attributskollektion (to be filled by data owners)
@@ -84,7 +86,7 @@ pdf_attributes = pdf_attributes.rename(columns=mapping.MAPPING_CLEAN_TO_SDK)
 pdf_attributes.insert(0, 'Attributskollektion', pd.NA)
 
 
-pdf_attributes['attr_descr'] = [ILLEGAL_CHARACTERS_RE.sub(r'',i) for i in pdf_attributes['attr_descr']]
+
 export_to_excel(pdf_attributes, "initialimport_attribute.xlsx", output_dir)
 
 export_to_excel_by_org(pdf_sdk, pdf_attributes,filename="initialimport.xlsx", org_col="author_da_gs", output_dir=output_dir)
