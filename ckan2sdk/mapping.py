@@ -36,7 +36,8 @@ MAPPING_CLEAN_TO_SDK = {
     "title": "label",
     "type": None,
     "updateInterval": "accrualPeriodicity",
-    "url": "DIST-CP-OGDLIF",
+    # "url": "DIST-CP-OGDLIF",
+    "datenlieferant": "DIST-CP-OGDLIF", # fuzzy matching
     "version": None,
     "extras": None,
     "groups": "DIST-CP-OGDKAT",

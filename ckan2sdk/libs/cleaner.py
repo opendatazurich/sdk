@@ -25,8 +25,11 @@ def split_dept_da(pdf: pd.Series) -> pd.DataFrame:
     output_column_da = pdf.name + "_da"
     output_column_org = pdf.name + "_org"
 
-    # splitting dataframe
-    pdf_author = pd.DataFrame([i.split(",") for i in pdf], columns=["c0","c1","c2","c3","c4","c5"])
+    # splitting dataframe (6 or less commas)
+    pdf_author = pd.DataFrame(
+        [ (i.split(",") + [""]*6)[:6]  for i in pdf ],
+        columns=["c0","c1","c2","c3","c4","c5"]
+    )
 
     # counting commas and splitting by commas
     pdf_commas = pd.DataFrame([i.count(",") for i in pdf],columns=["commas"])

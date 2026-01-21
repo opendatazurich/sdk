@@ -22,6 +22,13 @@ pdf_author = cleaner.split_dept_da(pdf['author']) # splitting author
 pdf_author = cleaner.fuzzymatch_dep_da(pdf_author, departement="author_dept", dienstabteilung="author_da", min_simularity=0.8) # fuzzy match author_dept and author_da to grobstruktur
 pdf = pd.concat([pdf,pdf_author], axis=1) # concat to pdf
 
+# datenlieferant -> dept. & dienstab.
+pdf_datenlieferant = cleaner.split_dept_da(pdf['url']) # splitting author
+pdf_datenlieferant = cleaner.fuzzymatch_dep_da(pdf_datenlieferant, departement="url_dept", dienstabteilung="url_da", min_simularity=0.8) # fuzzy match author_dept and author_da to grobstruktur
+pdf["datenlieferant"] = pdf_datenlieferant["url_da_gs"] + ", " + pdf_datenlieferant["url_dept_gs"] 
+# fill not matched values with original
+pdf["datenlieferant"] = pdf["datenlieferant"].fillna(pdf['url'])
+
 pdf['updateInterval'] = cleaner.unlist_first_element(pdf['updateInterval'])  # unlist field updateInterval
 
 pdf_cleaned_timerange = cleaner.split_timerange(pdf['timeRange']) # split field timeRange
