@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def call_api(limit: int = None) -> pd.DataFrame:
+def call_api(ckanurl, limit: int = None) -> pd.DataFrame:
     """
     Fetches data from the Stadt Zürich data portal API and returns it as a pandas DataFrame.
 
@@ -18,8 +18,6 @@ def call_api(limit: int = None) -> pd.DataFrame:
         pd.DataFrame: A pandas DataFrame containing the retrieved data.
     """
 
-    # api settings
-    ckanurl = "https://data.stadt-zuerich.ch"
 
     # packetsearch liefert alle Attribute, resp. das ganze Datenmodell
     queryapi = f"{ckanurl}/api/3/action/package_search"

@@ -11,8 +11,11 @@ from interface.sdk import SDK
 import mapping as mapping
 from filter_org import *
 
+# constants
+CKAN_BASE_URL = "https://data.stadt-zuerich.ch"
+
 # 0. Call Api and fetch CKAN metadata to pdf
-pdf = call_api(limit=1500)
+pdf = call_api(CKAN_BASE_URL, limit=1500)
 
 # 1. Clean CKAN dataset. i.e. author -> dept. & dienstab.
 pdf_author = cleaner.split_dept_da(pdf['author']) # splitting author
@@ -49,6 +52,9 @@ pdf = pdf[pdf['filter_tag']==False] # only entries which do not match defined ma
 # 2.1 filter data for onboarding workshops
 
 pdf = pdf[(pdf['author_da_gs'].isin(AUTHOR_DA_GS_LIST))|(pdf['author_dept_gs'].isin(AUTHOR_DEPT_GS_LIST))]
+
+# add OGD catalogue url
+pdf["ogd_dataset_url"] = CKAN_BASE_URL + "/dataset/" +pdf["name"]
 
 pdf_sdk = pdf
 

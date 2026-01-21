@@ -46,7 +46,8 @@ MAPPING_CLEAN_TO_SDK = {
     "relationships_as_object": None,
     "attributes": "attributes",
     "author_dept_gs":"author_dept_gs", # not actually a field in SDK > for matching grobstruktur
-    "author_da_gs":"author_da_gs" # not actually a field in SDK > for matching grobstruktur
+    "author_da_gs":"author_da_gs", # not actually a field in SDK > for matching grobstruktur
+    "ogd_dataset_url": "ogd_dataset_url",
 }
 
 # keep only entries where value is not None
