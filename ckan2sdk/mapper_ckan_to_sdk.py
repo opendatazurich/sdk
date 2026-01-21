@@ -53,7 +53,7 @@ pdf = pdf[(pdf['author_da_gs'].isin(AUTHOR_DA_GS_LIST))|(pdf['author_dept_gs'].i
 pdf_sdk = pdf
 
 # 3. Rename CKAN columns to SDK
-pdf_sdk = pdf_sdk[mapping.MAPPING_CLEAN_TO_SDK.keys()] # subsetting cols. Comment out if you want all cols
+# pdf_sdk = pdf_sdk[pdf_sdk.columns.intersection(mapping.MAPPING_CLEAN_TO_SDK.keys())] # subsetting cols. Comment out if you want all cols
 pdf_sdk = pdf_sdk.rename(columns=mapping.MAPPING_CLEAN_TO_SDK)
 # add empty columns on the left for Attributskollektion (to be filled by data owners)
 empty_col_names = ["SDK Datenbestand-Sammlung", "SDK Datenbestand", "SDK Datensatz-Sammlung"]
