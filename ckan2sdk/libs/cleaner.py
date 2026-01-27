@@ -434,6 +434,17 @@ def create_filter_variable(pdf: pd.DataFrame, matching_set = {'sasa','geodaten'}
 
     return(res_list)
 
+def contains_excluded_tags(tag_list, tags_to_exclude: list):
+    """
+    Check if one of the provided tags is present in the tag list.
+    Returns True if any of the provided tags is found.
+    
+    :param tag_list: as provided by ckan api [{'display_name': 'sasa', 'name': 'sasa', 'state': 'active', ...}, ...]
+    :param tags_to_exclude: List of one or more tags to check
+    :type tags_to_exclude: list
+    """
+    return any(tag_dict['name'] in tags_to_exclude for tag_dict in tag_list)
+
 def create_attributes_export(pdf: pd.DataFrame) -> pd.DataFrame:
     """
     Creates export object containing all attributes

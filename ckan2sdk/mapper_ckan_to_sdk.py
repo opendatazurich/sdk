@@ -21,11 +21,17 @@ pdf = call_api(CKAN_BASE_URL, limit=1500)
 pdf_author = cleaner.split_dept_da(pdf['author']) # splitting author
 pdf_author = cleaner.fuzzymatch_dep_da(pdf_author, departement="author_dept", dienstabteilung="author_da", min_simularity=0.8) # fuzzy match author_dept and author_da to grobstruktur
 pdf = pd.concat([pdf,pdf_author], axis=1) # concat to pdf
+print("Qualitätssicherung. Keine Dienstabteilung gefunden für diese Data Owner: ...")
+print(pdf.loc[pdf["author_da_gs"].isna(),"author"].sort_values().unique())
+print("-"*100)
 
 # datenlieferant -> dept. & dienstab.
 pdf_datenlieferant = cleaner.split_dept_da(pdf['url']) # splitting author
 pdf_datenlieferant = cleaner.fuzzymatch_dep_da(pdf_datenlieferant, departement="url_dept", dienstabteilung="url_da", min_simularity=0.8) # fuzzy match author_dept and author_da to grobstruktur
 pdf["datenlieferant"] = pdf_datenlieferant["url_da_gs"] + ", " + pdf_datenlieferant["url_dept_gs"] 
+print("Qualitätssicherung. Keine Dienstabteilung gefunden für diese Datenlieferanten (verwende Original): ...")
+print(pdf.loc[pdf["datenlieferant"].isna(),"url"].sort_values().unique())
+print("-"*100)
 # fill not matched values with original
 pdf["datenlieferant"] = pdf["datenlieferant"].fillna(pdf['url'])
 
@@ -43,7 +49,16 @@ pdf['dateFirstPublished'] = cleaner.date_to_unixtime(pdf['dateFirstPublished'])
 
 pdf['groups'] = cleaner.extract_keys(pdf=pdf['groups'], key_to_extract="name", new_key_name="group")
 
-pdf['filter_tag'] = cleaner.create_filter_variable(pdf=pdf['tags'], matching_set={'sasa','geodaten'})
+# filter variable for unwanted datasets
+# True sind die, die wir nicht wollen
+pdf['filter_tag'] = (
+    # wir wollen keine Geodaten
+    pdf['tags'].apply(cleaner.contains_excluded_tags, tags_to_exclude=["geodaten"]) |
+    # wir wollen keine DataOwner, die nicht in der Stadt sind
+    pdf['author_da_gs'].isna() | 
+    # wir wollen SASA, aber nicht, wenn SSZ oder BVA die Owner sind
+    (pdf['tags'].apply(cleaner.contains_excluded_tags, tags_to_exclude=["sasa"]) & pdf["author_da_gs"].isin(["Statistik Stadt Zürich (SSZ)", "Bevölkerungsamt (BVA)"]))
+)
 
 pdf['tags'] = cleaner.extract_keys(pdf=pdf['tags'], key_to_extract="name", new_key_name="tag")
 
