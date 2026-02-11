@@ -5,6 +5,7 @@ import jaro
 import calendar
 from datetime import datetime
 import json
+import unicodedata
 
 def split_dept_da(pdf: pd.Series) -> pd.DataFrame:
     """
@@ -481,16 +482,16 @@ def create_attributes_export(pdf: pd.DataFrame) -> pd.DataFrame:
             # read/evaluate string with list in list > gives back attr_spoken and attr_descr
             i_attr = pd.DataFrame(json.loads(i_attr), columns=['attr_spoken','attr_descr'])
 
-            # read out attr_tech (word after last space) / clean extractet string
-            # i_attr['attr_tech'] = [re.search(r'(?<=\s)[^\s]*$', string = i).group() if re.search(r'(?<=\s)[^\s]*$', string = i) else '' for i in i_attr['attr_spoken']]
-            i_attr['attr_tech'] = [re.search(r'\(technisch:(.*)', string = i).group() if re.search(r'\(technisch:(.*)', string = i) else '' for i in i_attr['attr_spoken']]
-            i_attr['attr_tech'] = [re.sub(r'\(technisch: ', '', i) if re.search(r'\(technisch: ', i) else '' for i in i_attr['attr_tech']] # replace closing paranthesis
-            # i_attr['attr_tech'] = [re.sub(r'\)\b', '', i) if re.search(r'\)\b', i) else '' for i in i_attr['attr_tech']] # replace closing paranthesis
-            i_attr['attr_tech'] = [re.sub(r'\)$', '', i) for i in i_attr['attr_tech']] # replace closing paranthesis
+            # Extrahiert aus 'attr_spoken' den technischen Teil in Klammern am String-Ende:
+            # - str.extract(...) liefert ein DataFrame; [0] nimmt die erste Capture-Group (den Inhalt zwischen "technisch:" und ")")
+            i_attr['attr_tech'] = i_attr['attr_spoken'].str.extract(r'\(technisch:\s*(.*?)\)\s*$')[0].fillna('')
+            # Entfernt aus 'attr_spoken' den gesamten "(technisch: ...)"-Teil inkl. optionaler Leerzeichen davor
+            i_attr['attr_spoken'] = i_attr['attr_spoken'].str.replace(r'\s*\(technisch:.*$', '', regex=True)
+            # Normalisiert verbleibende Whitespaces in 'attr_spoken':
+            # - ersetzt jede Folge von Whitespaces (\s+) durch genau ein Leerzeichen (' ')
+            # - str.strip() entfernt führende und nachgestellte Leerzeichen nach der Ersetzung
+            i_attr['attr_spoken'] = i_attr['attr_spoken'].str.replace(r'\s+', ' ', regex=True).str.strip()
 
-            # extract attr_spoken i.e. everything before last opening paranthesis / clean extractet string
-            i_attr['attr_spoken'] = [re.search(r'^[^(]+', string = i).group() for i in i_attr['attr_spoken']]
-            i_attr['attr_spoken'] = [re.sub(r'\s+', '', i) for i in i_attr['attr_spoken']]
 
         else:
             i_attr = pd.DataFrame({'attr_tech': [None],'attr_spoken': [None],'attr_spoken': [None]})
@@ -508,4 +509,42 @@ def create_attributes_export(pdf: pd.DataFrame) -> pd.DataFrame:
 
 
     return pdf_attributes
+
+
+
+def flatten_json(x, field, sep="; "):
+    """
+    Takes a json obeject an extracts the given fields to a string, seperated by sep
+    
+    :param x: json object
+    :param field: key of the field you want
+    :param sep: Seperator
+    """
+    if not isinstance(x, list) or len(x) == 0:
+        return pd.NA
+    return sep.join(
+        str(d.get(field))
+        for d in x
+        if isinstance(d, dict) and d.get(field) is not None
+    )
+
+
+
+def remove_invisible(s, keep=("\n",)):
+    """
+    Removes invisible characters from S, except for those that are explicitly given in keep.
+    
+    :param s: String
+    :param keep: Tuple with strings
+    """
+    if s is None:
+        return s
+    s = str(s)
+    return "".join(
+        ch for ch in s
+        if not (
+            unicodedata.category(ch) in ("Cf", "Cc")
+            and ch not in keep
+        )
+    )
 

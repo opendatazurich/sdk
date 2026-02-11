@@ -13,6 +13,7 @@ from filter_org import *
 
 # constants
 CKAN_BASE_URL = "https://data.stadt-zuerich.ch"
+GROUP_SEPERATOR = "\n" # the groups in the excel cell are seperated by this
 
 # 0. Call Api and fetch CKAN metadata to pdf
 pdf = call_api(CKAN_BASE_URL, limit=1500)
@@ -36,18 +37,25 @@ print("-"*100)
 pdf["datenlieferant"] = pdf["datenlieferant"].fillna(pdf['url'])
 
 pdf['updateInterval'] = cleaner.unlist_first_element(pdf['updateInterval'])  # unlist field updateInterval
+pdf['updateInterval'] = pdf['updateInterval'].replace(mapping.SDK_EXCEL_UPDATE_INTERVALL)
+
+# SDK readable licence
+pdf['license_id'] = pdf['license_id'].replace(mapping.SDK_EXCEL_LICENCE)
 
 pdf_cleaned_timerange = cleaner.split_timerange(pdf['timeRange']) # split field timeRange
 pdf = pd.concat([pdf,pdf_cleaned_timerange], axis = 1) # concat newly created fields to pdf
-pdf['temporalStart'] = cleaner.date_to_unixtime(pdf['temporalStart']) # change to unix time
-pdf['temporalEnd'] = cleaner.date_to_unixtime(pdf['temporalEnd']) # change to unix time
+# pdf['temporalStart'] = cleaner.date_to_unixtime(pdf['temporalStart']) # change to unix time
+# pdf['temporalEnd'] = cleaner.date_to_unixtime(pdf['temporalEnd']) # change to unix time
 
 pdf['dateLastUpdated'] = pd.Series(cleaner.extract_date(pdf['dateLastUpdated']))
-pdf['dateLastUpdated'] = cleaner.date_to_unixtime(pdf['dateLastUpdated'])
+# pdf['dateLastUpdated'] = cleaner.date_to_unixtime(pdf['dateLastUpdated'])
 pdf['dateFirstPublished'] = pd.Series(cleaner.extract_date(pdf['dateFirstPublished']))
-pdf['dateFirstPublished'] = cleaner.date_to_unixtime(pdf['dateFirstPublished'])
+# pdf['dateFirstPublished'] = cleaner.date_to_unixtime(pdf['dateFirstPublished'])
 
-pdf['groups'] = cleaner.extract_keys(pdf=pdf['groups'], key_to_extract="name", new_key_name="group")
+pdf['groups'] = cleaner.extract_keys(pdf=pdf['groups'], key_to_extract="display_name", new_key_name="group")
+pdf["groups"] = pdf["groups"].apply(cleaner.flatten_json,field="group", sep=GROUP_SEPERATOR)
+# group string contain invisible characters. Remove them
+pdf["groups"] = pdf["groups"].apply(cleaner.remove_invisible, keep=(GROUP_SEPERATOR))
 
 # filter variable for unwanted datasets
 # True sind die, die wir nicht wollen
@@ -61,6 +69,7 @@ pdf['filter_tag'] = (
 )
 
 pdf['tags'] = cleaner.extract_keys(pdf=pdf['tags'], key_to_extract="name", new_key_name="tag")
+pdf["tags"] = pdf["tags"].apply(cleaner.flatten_json, field="tag", sep="\n")
 
 pdf['attributes'] = cleaner.clean_attributes(pdf['sszFields'])
 
@@ -78,6 +87,14 @@ pdf = pdf[(pdf['author_da_gs'].isin(AUTHOR_DA_GS_LIST))|(pdf['author_dept_gs'].i
 # add OGD catalogue url
 pdf["ogd_dataset_url"] = CKAN_BASE_URL + "/dataset/" +pdf["name"]
 
+
+# Spezial distributions for SDK Import Excel
+pdf["dist_type"] = "OGD"
+pdf["dist_of"] = pdf["title"]
+pdf["dist_name"] = "OGD"
+pdf["dist_format"] = "CSV"
+
+
 pdf_sdk = pdf
 
 # 3. Rename CKAN columns to SDK
@@ -92,7 +109,7 @@ for col in empty_col_names:
 # 4. Testexports
 output_dir = "output"
 # 4.1 Testexport for Nils (Initialimport)
-testexport_json(pdf_sdk, "testexport_10datasets.json", output_dir)
+# testexport_json(pdf_sdk, "testexport_10datasets.json", output_dir)
 export_to_excel(pdf_sdk, "initialimport_datasets.xlsx", output_dir)
 
 
@@ -103,15 +120,27 @@ pdf_attributes = pd.merge(pdf_attributes, pdf[['name','title','author_dept_gs','
 pdf_attributes['attr_descr'] = [ILLEGAL_CHARACTERS_RE.sub(r'',i) for i in pdf_attributes['attr_descr']]
 # rename col names according to mapping
 pdf_attributes = pdf_attributes.rename(columns=mapping.MAPPING_CLEAN_TO_SDK)
+# rename für SDK Excel
+pdf_attributes = pdf_attributes.rename(columns={"Name": "Bestandteil von"})
+# add sorting for SDK Excel
+pdf_attributes["Nr"] = pdf_attributes.groupby("Bestandteil von").cumcount().add(1)
+
 # add empty column on the left for Attributskollektion (to be filled by data owners)
 #pdf_attributes['Attributskollektion'] = pd.NA
 pdf_attributes.insert(0, 'Attributskollektion', pd.NA)
 
 
+########## Hardcoded fpr testimport. DO NOT USE IN PROD!!!!!
+pdf_sdk["Sammlung"] = "Präsidialdepartement/Statistik Stadt Zürich (SSZ)/Test-Datenbestand"
+pdf_attributes["Besteht aus"] = "/Semantik/StatZone/StatZoneCd"
+########## 
 
 export_to_excel(pdf_attributes, "initialimport_attribute.xlsx", output_dir)
 
-export_to_excel_by_org(pdf_sdk, pdf_attributes,filename="initialimport.xlsx", org_col="author_da_gs", output_dir=output_dir)
-
+export_to_excel_sdk_style(pdf_sdk, pdf_attributes,
+                          dataset_cols=mapping.SDK_EXCEL_DATASET_COLNAMES, 
+                          attribute_cols=mapping.SDK_EXCEL_ATTRIBUTES_COLNAMES, 
+                          distributions_cols=mapping.SDK_EXCEL_DISTRIBUTIONS_COLNAMES,
+                          filename="initialimport.xlsx", org_col="author_da_gs", output_dir=output_dir)
 
 
