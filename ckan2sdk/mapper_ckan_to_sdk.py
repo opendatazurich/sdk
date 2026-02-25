@@ -141,6 +141,7 @@ export_to_excel_sdk_style(pdf_sdk, pdf_attributes,
                           dataset_cols=mapping.SDK_EXCEL_DATASET_COLNAMES, 
                           attribute_cols=mapping.SDK_EXCEL_ATTRIBUTES_COLNAMES, 
                           distributions_cols=mapping.SDK_EXCEL_DISTRIBUTIONS_COLNAMES,
+                          distributions_empty_cols=mapping.SDK_EXCEL_DISTRIBUTIONS_EMPY_COLS,
                           filename="initialimport.xlsx", org_col="author_da_gs", output_dir=output_dir)
 
 

@@ -72,12 +72,14 @@ def export_to_excel_by_org(df_dataset: pd.DataFrame, df_attribues: pd.DataFrame,
 
 def export_to_excel_sdk_style(df_dataset: pd.DataFrame, df_attribues: pd.DataFrame, 
                               dataset_cols: list, attribute_cols: list, distributions_cols: list,
+                              distributions_empty_cols,
                               filename="initialimport.xlsx", org_col="author_da_gs", output_dir: str = "."):
     """
     Creates an excel file for every unique organization (e.g. dienstabteilung)
     which contains a sheet for datasets and attribues
     and matches the formats of an SDK Excel Export
     
+    :param distributions_empty_cols: List of Column names in distributions. These get deleted and re-inserted empty
     :param df_dataset: df with dataset info. Needs to have a org_col
     :type df_dataset: pd.DataFrame
     :param df_attribues: df with attribues info. Needs to have a org_col
@@ -110,7 +112,7 @@ def export_to_excel_sdk_style(df_dataset: pd.DataFrame, df_attribues: pd.DataFra
 
     df_dataset = add_empty_cols(df=df_dataset, colnames=dataset_cols)
     df_attribues = add_empty_cols(df=df_attribues, colnames=attribute_cols)
-    distributions = add_empty_cols(df=df_dataset, colnames=distributions_cols)
+    distributions = add_empty_cols(df=df_dataset.drop(columns=distributions_empty_cols), colnames=distributions_cols)
 
     written_files = []
 

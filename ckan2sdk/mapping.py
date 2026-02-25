@@ -197,3 +197,12 @@ SDK_EXCEL_DISTRIBUTIONS_COLNAMES = [
     # 'author_dept_gs',
     # 'author_da_gs',
 ]
+
+# the distributions df is based on the dataset df
+# some column names exist in both, but we want the info only in one of them
+# here's the list of columns that get dropped in the distributions df, 
+# because non existent cols will be added empty
+SDK_EXCEL_DISTRIBUTIONS_EMPY_COLS = [
+    "Beschreibung",
+    "Schlüsselwörter",
+]
