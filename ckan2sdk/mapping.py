@@ -206,3 +206,18 @@ SDK_EXCEL_DISTRIBUTIONS_EMPY_COLS = [
     "Beschreibung",
     "Schlüsselwörter",
 ]
+
+# Default Colnames in sheet "Zusatzinformationen"
+SDK_EXCEL_ADDITIONAL_INFO_COLNAMES = [
+    "Herkunft zu",
+    "Herkunft von",
+    "Favorit",
+    "Nr",
+    "Kennzeichnung",
+]
+
+MAPPING_ADDITIONAL_INFO_COLNAMES = {
+    "title": "Herkunft zu",
+    "legalInformation": "Herkunft von",
+    "additional_info_identifier": "Kennzeichnung",
+}

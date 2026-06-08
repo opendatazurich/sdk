@@ -71,9 +71,11 @@ def export_to_excel_by_org(df_dataset: pd.DataFrame, df_attribues: pd.DataFrame,
     return written_files
 
 def export_to_excel_sdk_style(df_dataset: pd.DataFrame, df_attribues: pd.DataFrame, 
+                              df_additional_info: pd.DataFrame,
                               dataset_cols: list, attribute_cols: list, distributions_cols: list,
                               distributions_empty_cols,
-                              filename="initialimport.xlsx", org_col="author_da_gs", output_dir: str = "."):
+                              additional_info_cols: list,
+                              filename="initialimport", org_col="author_da_gs", output_dir: str = "."):
     """
     Creates an excel file for every unique organization (e.g. dienstabteilung)
     which contains a sheet for datasets and attribues
@@ -113,17 +115,19 @@ def export_to_excel_sdk_style(df_dataset: pd.DataFrame, df_attribues: pd.DataFra
     df_dataset = add_empty_cols(df=df_dataset, colnames=dataset_cols)
     df_attribues = add_empty_cols(df=df_attribues, colnames=attribute_cols)
     distributions = add_empty_cols(df=df_dataset.drop(columns=distributions_empty_cols), colnames=distributions_cols)
+    df_additional_info = add_empty_cols(df=df_additional_info, colnames=additional_info_cols)
 
     written_files = []
 
     orgs = df_dataset[org_col].unique()
     for org in orgs:
         org_safe = _sanitize_filename_part(str(org))
-        filename_org = f"{org_safe}_{filename}"
+        filename_org = f"{filename} {org_safe}.xlsx"
         path = os.path.join(output_dir, filename_org)
         df_dataset_org = df_dataset[df_dataset[org_col]==org]
         df_attribues_org = df_attribues[df_attribues[org_col]==org]
         distributions_org = distributions[distributions[org_col]==org]
+        df_additional_info_org = df_additional_info[df_additional_info[org_col]==org]
         print("write", path)
 
 
@@ -132,6 +136,7 @@ def export_to_excel_sdk_style(df_dataset: pd.DataFrame, df_attribues: pd.DataFra
             df_dataset_org[dataset_cols].to_excel(writer, sheet_name="Datensätze", index=False, startrow=1)
             df_attribues_org[attribute_cols].to_excel(writer, sheet_name="Bestandteile", index=False, startrow=1)
             distributions_org[distributions_cols].to_excel(writer, sheet_name="Distributionen", index=False, startrow=1)
+            df_additional_info_org[additional_info_cols].to_excel(writer, sheet_name="Zusatzinformationen", index=False, startrow=1)
         
         
             # Alignment einmal definieren (Textumbruch)
@@ -142,11 +147,13 @@ def export_to_excel_sdk_style(df_dataset: pd.DataFrame, df_attribues: pd.DataFra
             ws_datasets = writer.sheets["Datensätze"]
             ws_parts    = writer.sheets["Bestandteile"]
             ws_dists    = writer.sheets["Distributionen"]
+            ws_add_info    = writer.sheets["Zusatzinformationen"]
 
             # Formatierung anwenden (startrow=1 wie oben)
             format_sheet(ws_datasets, ncols=len(dataset_cols),      nrows=len(df_dataset_org),  startrow_excel=1)
             format_sheet(ws_parts,    ncols=len(attribute_cols),    nrows=len(df_attribues_org), startrow_excel=1)
             format_sheet(ws_dists,    ncols=len(distributions_cols), nrows=len(distributions),  startrow_excel=1)
+            format_sheet(ws_add_info,    ncols=len(additional_info_cols), nrows=len(df_additional_info_org),  startrow_excel=1)
 
 
         

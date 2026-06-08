@@ -131,17 +131,25 @@ pdf_attributes.insert(0, 'Attributskollektion', pd.NA)
 
 
 ########## Hardcoded fpr testimport. DO NOT USE IN PROD!!!!!
-pdf_sdk["Sammlung"] = "Präsidialdepartement/Statistik Stadt Zürich (SSZ)/Test-Datenbestand"
-pdf_attributes["Besteht aus"] = "/Semantik/StatZone/StatZoneCd"
+# pdf_sdk["Sammlung"] = "Präsidialdepartement/Statistik Stadt Zürich (SSZ)/Test-Datenbestand"
+# pdf_attributes["Besteht aus"] = "/Semantik/StatZone/StatZoneCd"
 ########## 
 
 export_to_excel(pdf_attributes, "initialimport_attribute.xlsx", output_dir)
 
-export_to_excel_sdk_style(pdf_sdk, pdf_attributes,
+
+# For excel sheet "Zusatzinformationen" for "Rechtsgrundlagen"
+pdf_additional_info = pdf[["title","legalInformation","author_da_gs"]].copy()
+pdf_additional_info["additional_info_identifier"] = "Rechtsgrundlage Datenbearbeitung"
+pdf_additional_info = pdf_additional_info.rename(columns=mapping.MAPPING_ADDITIONAL_INFO_COLNAMES)
+
+
+export_to_excel_sdk_style(pdf_sdk, pdf_attributes, pdf_additional_info,
                           dataset_cols=mapping.SDK_EXCEL_DATASET_COLNAMES, 
                           attribute_cols=mapping.SDK_EXCEL_ATTRIBUTES_COLNAMES, 
                           distributions_cols=mapping.SDK_EXCEL_DISTRIBUTIONS_COLNAMES,
                           distributions_empty_cols=mapping.SDK_EXCEL_DISTRIBUTIONS_EMPY_COLS,
-                          filename="initialimport.xlsx", org_col="author_da_gs", output_dir=output_dir)
+                          additional_info_cols=mapping.SDK_EXCEL_ADDITIONAL_INFO_COLNAMES,
+                          filename="Export Open-Data-Katalog", org_col="author_da_gs", output_dir=output_dir)
 
 
