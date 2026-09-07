@@ -25,11 +25,28 @@ flake8 --append-config .flake8 # appends user defined formatting rules to flake8
 
 ## sdk2ckan
 
-TODO
+Not done here, but in *OGD-Pipeline* on CMP (managed by Banian).
 
 ## ckan2sdk
 
-The ckan2sdk project contains .... TODO
+The script takes metadata from OGD catalog and formats an Excel file that can be imported into SDK (dataspot). This is used for the *Initialimport* of OGD metadata in SDK.
+
+**Usage**
+Execute main script [mapping.py](ckan2sdk/mapper_ckan_to_sdk.py). The script:
+
+- creates Excel Exports by organization (Dienstabteilung/Organisationseinheit)
+- filters certain organizations for pioneer group
+- excludes unwanted datasets (geo data oder ssz data)
+- adds "Datenlieferant" in SDK format
+- change field mapping to match the names of the SDK
+
+**Parameters an helper scripts**
+- [mapping.py](ckan2sdk/mapping.py): Contains all mappings that are needed, like column and value mappings for CKAN-SDK, or columns to export
+- [filter_org.py](ckan2sdk/filter_org.py): Contains filter variables for organization (*Dienstabteilung*, *Departement*). Use names from [grobstruktur.json](_data/grobstruktur.json)
+- [grobstruktur.json](_data/grobstruktur.json): Maps *Dienstabteilung* and *Departement* in correct spelling for SDK
+- [ckan_api.py](ckan2sdk/libs/ckan_api.py): Helper functions for CKAN-API
+- [cleaner.py](ckan2sdk/libs/cleaner.py): Helper functions for data cleaning and fuzzy-matching
+- [exports.py](ckan2sdk/libs/exports.py): Helper functions for excel exports
 
 ### Existing scripts
 
