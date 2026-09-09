@@ -5,20 +5,26 @@ Use names from _data/grobstruktur.json
 
 # Dienstabteilung/Organisationseinheit
 AUTHOR_DA_GS_LIST = [
-    "Amt für Zusatzleistungen zur AHV/IV (AZL)",
-    "Bevölkerungsamt (BVA)",
-    "Dienstabteilung Verkehr (DAV)",
-    "Entsorgung + Recycling Zürich (ERZ)",
-    "Elektrizitätswerk der Stadt Zürich (ewz)",
+    # "Amt für Zusatzleistungen zur AHV/IV (AZL)",
+    # "Bevölkerungsamt (BVA)",
+    # "Dienstabteilung Verkehr (DAV)",
+    # "Entsorgung + Recycling Zürich (ERZ)",
+    # "Elektrizitätswerk der Stadt Zürich (ewz)",
     # "Immobilien Stadt Zürich (IMMO)",
-    "Organisation und Informatik (OIZ)", # no datasets not sure, if string correct
-    "Sportamt (SPA)",
+    # "Organisation und Informatik (OIZ)", # no datasets not sure, if string correct
+    # "Sportamt (SPA)",
     # "Schulamt (SAM)",
     # "Tiefbauamt (TAZ)",
     # "Umwelt- und Gesundheitsschutz (UGZ)",
-    "Verkehrsbetriebe (VBZ)",
+    # "Verkehrsbetriebe (VBZ)",
     # "Wasserversorgung (WVZ)",
     # "Soziale Einrichtungen und Betriebe (SEB)",
+    "Grün Stadt Zürich (GSZ)",
+    "Liegenschaften Stadt Zürich (LSZ)",
+    "Schulamt (SAM)",
+    "Tiefbauamt (TAZ)",
+    "Umwelt- und Gesundheitsschutz (UGZ)",
+    "Wasserversorgung (WVZ)",
 ]
 
 # Departement
